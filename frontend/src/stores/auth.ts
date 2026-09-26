@@ -73,10 +73,18 @@ export const useAuthStore = defineStore('auth', () => {
   const savedProfiles = localStorage.getItem('coop_user_profiles');
   const profiles = ref<UserProfile[]>(savedProfiles ? JSON.parse(savedProfiles) : [...defaultMockProfiles]);
 
-  const currentUser = ref<UserProfile>(profiles.value[0]);
+  const savedCurrentUser = localStorage.getItem('coop_current_user');
+  const currentUser = ref<UserProfile>(
+    savedCurrentUser ? JSON.parse(savedCurrentUser) : profiles.value[0]
+  );
   const token = ref<string | null>(localStorage.getItem('coop_auth_token'));
   const refreshToken = ref<string | null>(localStorage.getItem('coop_refresh_token'));
   const activeUsername = ref<string>('colaborador');
+
+  function setCurrentUser(user: UserProfile) {
+    currentUser.value = { ...user };
+    localStorage.setItem('coop_current_user', JSON.stringify(currentUser.value));
+  }
 
   function saveProfiles() {
     localStorage.setItem('coop_user_profiles', JSON.stringify(profiles.value));
@@ -99,7 +107,7 @@ export const useAuthStore = defineStore('auth', () => {
       profiles.value[idx] = { ...profiles.value[idx], ...updates };
       saveProfiles();
       if (currentUser.value.id === id) {
-        currentUser.value = { ...profiles.value[idx] };
+        setCurrentUser(profiles.value[idx]);
       }
     }
   }
@@ -166,7 +174,7 @@ export const useAuthStore = defineStore('auth', () => {
           const profileId = profileCredentials[credKey].profileId;
           const found = mockProfiles.find(p => p.id === profileId);
           if (found) {
-            currentUser.value = { ...found };
+            setCurrentUser(found);
           }
         }
         return true;
@@ -219,7 +227,7 @@ export const useAuthStore = defineStore('auth', () => {
   async function switchProfile(profileId: string) {
     const found = profiles.value.find((p) => p.id === profileId);
     if (found) {
-      currentUser.value = { ...found };
+      setCurrentUser(found);
       await syncKeycloakToken(profileId);
     }
   }
@@ -229,11 +237,13 @@ export const useAuthStore = defineStore('auth', () => {
     setRefreshToken(null);
     localStorage.removeItem('coop_auth_token');
     localStorage.removeItem('coop_refresh_token');
+    localStorage.removeItem('coop_current_user');
     api.setToken(null);
   }
 
   function setRole(role: UserRole) {
     currentUser.value.role = role;
+    localStorage.setItem('coop_current_user', JSON.stringify(currentUser.value));
   }
 
   function setToken(newToken: string | null) {

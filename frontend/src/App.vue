@@ -63,19 +63,18 @@ onUnmounted(() => {
           <span class="text-slate-300">·</span>
           <span>&copy; 2026 Cooperativa de Crédito Integrada. Todos os direitos reservados.</span>
         </div>
-        <div class="flex flex-wrap items-center gap-4 sm:gap-6 pr-28 sm:pr-36">
+        <div class="flex flex-wrap items-center gap-4 sm:gap-6 pr-44 sm:pr-56">
           <router-link to="/codigo-conduta" class="hover:text-brand-600 transition-colors">Código de Conduta</router-link>
           <router-link to="/seguranca-privacidade" class="hover:text-brand-600 transition-colors">Segurança & Privacidade</router-link>
-          <router-link to="/suporte" class="hover:text-brand-600 transition-colors">Suporte ao Colaborador</router-link>
+          <router-link to="/suporte" class="hover:text-brand-600 transition-colors font-medium text-slate-600">Suporte ao Colaborador</router-link>
         </div>
       </div>
     </footer>
 
-    <!-- Floating AI Tutor Trigger (Fixed Bottom-Right com limite acima do rodapé) -->
+    <!-- Floating AI Tutor Trigger (Fixed acima do rodapé, sem sobreposição) -->
     <div
       v-if="!isLoginPage"
-      class="fixed right-6 z-30 transition-[bottom] duration-150 ease-out"
-      :style="{ bottom: `${bottomOffset}px` }"
+      class="fixed bottom-24 right-6 sm:right-8 z-30"
     >
       <button
         @click="aiTutorStore.openDrawer"
