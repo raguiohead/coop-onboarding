@@ -60,11 +60,6 @@ const router = createRouter({
       component: SupportView,
     },
     {
-      path: '/design-system',
-      name: 'design-system',
-      component: () => import('@/views/DesignSystemView.vue'),
-    },
-    {
       path: '/:pathMatch(.*)*',
       redirect: '/',
     },

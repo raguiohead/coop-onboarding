@@ -15,7 +15,6 @@ import {
   Users,
   LogOut,
   LogIn,
-  Palette,
 } from 'lucide-vue-next';
 
 const router = useRouter();
@@ -108,14 +107,6 @@ function handleLogout() {
             <span>Gestão de Turma</span>
           </router-link>
 
-          <router-link
-            to="/design-system"
-            class="px-3 py-2 rounded-lg text-sm font-medium transition-colors flex items-center space-x-1.5 text-slate-600 hover:text-brand-700 hover:bg-brand-50"
-            active-class="!text-brand-700 !bg-brand-50 font-semibold"
-          >
-            <Palette class="w-4 h-4" />
-            <span>Design System</span>
-          </router-link>
         </nav>
 
         <!-- Right Side: Tutor AI Button + User Switcher -->

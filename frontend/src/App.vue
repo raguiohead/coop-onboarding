@@ -34,7 +34,6 @@ const aiTutorStore = useAiTutorStore();
           <router-link to="/codigo-conduta" class="hover:text-brand-600 transition-colors">Código de Conduta</router-link>
           <router-link to="/seguranca-privacidade" class="hover:text-brand-600 transition-colors">Segurança & Privacidade</router-link>
           <router-link to="/suporte" class="hover:text-brand-600 transition-colors">Suporte ao Colaborador</router-link>
-          <router-link to="/design-system" class="hover:text-brand-600 transition-colors font-medium text-slate-400">Design System</router-link>
         </div>
       </div>
     </footer>

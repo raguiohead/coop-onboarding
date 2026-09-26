@@ -156,21 +156,14 @@ async function runE2E() {
     console.log('✅ Segurança & Privacidade carregada.');
 
     // 9. Suporte ao Colaborador (/suporte)
-    console.log('\n📍 [9/10] Testando Página de Suporte ao Colaborador (/suporte)...');
+    console.log('\n📍 [9/9] Testando Página de Suporte ao Colaborador (/suporte)...');
     await page.goto('http://localhost:5173/suporte', { waitUntil: 'networkidle' });
     await page.waitForTimeout(1000);
     await page.screenshot({ path: path.join(screenshotsDir, '13-suporte.png'), fullPage: true });
     console.log('✅ Suporte ao Colaborador carregado.');
 
-    // 10. Design System (/design-system)
-    console.log('\n📍 [10/10] Testando Página Viva do Design System (/design-system)...');
-    await page.goto('http://localhost:5173/design-system', { waitUntil: 'networkidle' });
-    await page.waitForTimeout(1000);
-    await page.screenshot({ path: path.join(screenshotsDir, '14-design-system.png'), fullPage: true });
-    console.log('✅ Página do Design System carregada.');
-
-    // 7. Tutor IA Interativo
-    console.log('\n📍 [7/7] Testando Drawer do Tutor Virtual de IA...');
+    // Tutor IA Interativo
+    console.log('\n📍 Testando Drawer do Tutor Virtual de IA...');
     const tutorBtn = page.locator('button:has-text("Tutor IA")').first();
     if (await tutorBtn.count() > 0) {
       await tutorBtn.click();
@@ -178,10 +171,9 @@ async function runE2E() {
       const inputQuestion = page.locator('input[placeholder*="Dúvida"], textarea').first();
       if (await inputQuestion.count() > 0) {
         await inputQuestion.fill('Qual o propósito de uma cooperativa de crédito?');
-        const sendBtn = page.locator('button').filter({ has: page.locator('svg') }).last();
-        await sendBtn.click();
-        await page.waitForTimeout(5000);
-        await page.screenshot({ path: path.join(screenshotsDir, '11-tutor-interaction.png') });
+        await inputQuestion.press('Enter');
+        await page.waitForTimeout(4000);
+        await page.screenshot({ path: path.join(screenshotsDir, '14-tutor-interaction.png') });
         console.log('✅ Interação com Tutor IA capturada com sucesso.');
       }
     }
