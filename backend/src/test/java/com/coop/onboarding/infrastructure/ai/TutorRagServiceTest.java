@@ -70,7 +70,7 @@ class TutorRagServiceTest {
 
         SearchRequest captured = requestCaptor.getValue();
         assertThat(captured.getQuery()).isEqualTo(query.question());
-        assertThat(captured.getTopK()).isEqualTo(4);
+        assertThat(captured.getTopK()).isEqualTo(2);
         assertThat(captured.getFilterExpression().toString()).contains(lessonId.toString());
     }
 
