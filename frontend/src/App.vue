@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref, onMounted, onUnmounted } from 'vue';
+import { computed } from 'vue';
 import { useRoute } from 'vue-router';
 import AppHeader from '@/components/layout/AppHeader.vue';
 import AiTutorDrawer from '@/components/ai/AiTutorDrawer.vue';
@@ -10,30 +10,6 @@ const route = useRoute();
 const aiTutorStore = useAiTutorStore();
 
 const isLoginPage = computed(() => route.path === '/login');
-
-const footerRef = ref<HTMLElement | null>(null);
-const bottomOffset = ref(24);
-
-function updateTutorPosition() {
-  if (!footerRef.value) {
-    bottomOffset.value = 24;
-    return;
-  }
-  const rect = footerRef.value.getBoundingClientRect();
-  const visibleFooter = Math.max(0, window.innerHeight - rect.top);
-  bottomOffset.value = visibleFooter > 0 ? visibleFooter + 18 : 24;
-}
-
-onMounted(() => {
-  window.addEventListener('scroll', updateTutorPosition, { passive: true });
-  window.addEventListener('resize', updateTutorPosition, { passive: true });
-  updateTutorPosition();
-});
-
-onUnmounted(() => {
-  window.removeEventListener('scroll', updateTutorPosition);
-  window.removeEventListener('resize', updateTutorPosition);
-});
 </script>
 
 <template>
@@ -51,7 +27,7 @@ onUnmounted(() => {
     </div>
 
     <!-- Corporate Footer (Oculto na tela de login) -->
-    <footer ref="footerRef" v-if="!isLoginPage" class="mt-auto border-t border-slate-200/80 bg-white py-6 text-xs text-slate-500">
+    <footer v-if="!isLoginPage" class="mt-auto border-t border-slate-200/80 bg-white py-6 text-xs text-slate-500">
       <div class="max-w-[1780px] mx-auto px-3 sm:px-5 lg:px-8 xl:px-10 flex flex-col sm:flex-row items-center justify-between gap-4">
         <div class="flex items-center space-x-2.5">
           <div class="w-6 h-6 rounded-lg bg-gradient-to-br from-brand-600 to-brand-800 flex items-center justify-center text-white shadow-xs shrink-0">
@@ -63,18 +39,18 @@ onUnmounted(() => {
           <span class="text-slate-300">·</span>
           <span>&copy; 2026 Cooperativa de Crédito Integrada. Todos os direitos reservados.</span>
         </div>
-        <div class="flex flex-wrap items-center gap-4 sm:gap-6 pr-44 sm:pr-56">
+        <div class="flex flex-wrap items-center gap-4 sm:gap-6">
           <router-link to="/codigo-conduta" class="hover:text-brand-600 transition-colors">Código de Conduta</router-link>
           <router-link to="/seguranca-privacidade" class="hover:text-brand-600 transition-colors">Segurança & Privacidade</router-link>
-          <router-link to="/suporte" class="hover:text-brand-600 transition-colors font-medium text-slate-600">Suporte ao Colaborador</router-link>
+          <router-link to="/suporte" class="hover:text-brand-600 transition-colors">Suporte ao Colaborador</router-link>
         </div>
       </div>
     </footer>
 
-    <!-- Floating AI Tutor Trigger (Fixed acima do rodapé, sem sobreposição) -->
+    <!-- Floating AI Tutor Trigger (Fixed Bottom-Right no canto inferior) -->
     <div
       v-if="!isLoginPage"
-      class="fixed bottom-24 right-6 sm:right-8 z-30"
+      class="fixed bottom-6 right-6 z-30"
     >
       <button
         @click="aiTutorStore.openDrawer"
