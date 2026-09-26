@@ -173,6 +173,39 @@ node test-all-roles.mjs
 
 ---
 
+## 🔄 Esteira de CI/CD & Deploy Contínuo (GitLab-Style no GitHub)
+
+O ecossistema implementa uma esteira corporativa completa de **Integração Contínua e Entrega Contínua (CI/CD)** via **GitHub Actions** (`.github/workflows/ci-cd.yml`) com publicação automática de contêineres no **GitHub Container Registry (GHCR)**:
+
+```mermaid
+flowchart LR
+    DevBranch["develop (Dev)"] -->|Push / PR| CI1["Testes & Build Docker :dev"]
+    CI1 --> GHCR1["GHCR (ghcr.io/.../backend:dev)"]
+    
+    DevBranch -->|Merge PR| StagingBranch["staging (QA)"]
+    StagingBranch --> CI2["Testes & Build Docker :staging"]
+    CI2 --> GHCR2["GHCR (ghcr.io/.../backend:staging)"]
+    GHCR2 --> StagingDeploy["Deploy em Homologação"]
+
+    StagingBranch -->|Merge PR| MainBranch["main (Prod)"]
+    MainBranch --> CI3["Testes & Build Docker :latest"]
+    CI3 --> GHCR3["GHCR (ghcr.io/.../backend:latest)"]
+    GHCR3 --> WebDeploy["🚀 Deploy na Web (Produção)"]
+```
+
+### Topologia de Branches e Tags:
+- **`develop`:** Ambiente de desenvolvimento contínuo. Imagens geradas com tag `:dev` e `:${GITHUB_SHA}`.
+- **`staging`:** Ambiente de homologação e validação de qualidade (QA). Imagens geradas com tag `:staging` e `:qa`.
+- **`main`:** Ambiente de produção oficial. Imagens geradas com tag `:latest` e `:production`, disparando deploy para o servidor web.
+
+### Executar a Stack de Produção Completa com Docker Compose:
+```bash
+docker compose -f docker/docker-compose.prod.yml up -d
+```
+*(Executa Frontend Nginx na porta 80, Backend Spring Boot, PostgreSQL 16 com pgvector, Keycloak 25 e Ollama em rede isolada).*
+
+---
+
 ## 🗺️ Roadmap de Desenvolvimento Concluído
 
 - [x] **Fase 0: Setup de Infraestrutura & Ambiente** (Docker, pgvector, Keycloak, Java 21, Spring Boot 3.3)
