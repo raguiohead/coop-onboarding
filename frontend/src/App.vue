@@ -30,10 +30,11 @@ const aiTutorStore = useAiTutorStore();
           </div>
           <span>&copy; 2026 Cooperativa de Crédito Integrada. Todos os direitos reservados.</span>
         </div>
-        <div class="flex items-center space-x-6">
-          <span class="hover:text-brand-600 cursor-pointer transition-colors">Código de Conduta</span>
-          <span class="hover:text-brand-600 cursor-pointer transition-colors">Segurança & Privacidade</span>
-          <span class="hover:text-brand-600 cursor-pointer transition-colors">Suporte ao Colaborador</span>
+        <div class="flex flex-wrap items-center gap-4 sm:gap-6">
+          <router-link to="/codigo-conduta" class="hover:text-brand-600 transition-colors">Código de Conduta</router-link>
+          <router-link to="/seguranca-privacidade" class="hover:text-brand-600 transition-colors">Segurança & Privacidade</router-link>
+          <router-link to="/suporte" class="hover:text-brand-600 transition-colors">Suporte ao Colaborador</router-link>
+          <router-link to="/design-system" class="hover:text-brand-600 transition-colors font-medium text-slate-400">Design System</router-link>
         </div>
       </div>
     </footer>

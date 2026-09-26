@@ -5,6 +5,9 @@ import QuizzesView from '@/views/QuizzesView.vue';
 import ManagementView from '@/views/ManagementView.vue';
 import ProfileView from '@/views/ProfileView.vue';
 import LoginView from '@/views/LoginView.vue';
+import CodeOfConductView from '@/views/CodeOfConductView.vue';
+import SecurityPrivacyView from '@/views/SecurityPrivacyView.vue';
+import SupportView from '@/views/SupportView.vue';
 import { useAuthStore } from '@/stores/auth';
 
 const router = createRouter({
@@ -40,6 +43,26 @@ const router = createRouter({
       path: '/perfil',
       name: 'perfil',
       component: ProfileView,
+    },
+    {
+      path: '/codigo-conduta',
+      name: 'codigo-conduta',
+      component: CodeOfConductView,
+    },
+    {
+      path: '/seguranca-privacidade',
+      name: 'seguranca-privacidade',
+      component: SecurityPrivacyView,
+    },
+    {
+      path: '/suporte',
+      name: 'suporte',
+      component: SupportView,
+    },
+    {
+      path: '/design-system',
+      name: 'design-system',
+      component: () => import('@/views/DesignSystemView.vue'),
     },
     {
       path: '/:pathMatch(.*)*',
