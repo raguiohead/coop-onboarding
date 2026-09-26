@@ -65,12 +65,20 @@ public class TutorRagService implements AskTutorUseCase {
                 .withTopK(4)
                 .withFilterExpression(filterExpression);
 
-        List<Document> similarDocuments;
+        List<Document> similarDocuments = Collections.emptyList();
         try {
             similarDocuments = vectorStore.similaritySearch(searchRequest);
         } catch (Exception e) {
             log.error("Erro na busca por similaridade vetorial para streaming: {}", e.getMessage());
-            similarDocuments = Collections.emptyList();
+        }
+
+        if (similarDocuments.isEmpty()) {
+            log.info("Nenhum chunk com lessonId={}. Buscando globalmente na base de conhecimento...", query.lessonId());
+            try {
+                similarDocuments = vectorStore.similaritySearch(SearchRequest.query(query.question()).withTopK(4));
+            } catch (Exception e) {
+                log.error("Erro na busca global vetorial para streaming: {}", e.getMessage());
+            }
         }
 
         if (similarDocuments.isEmpty()) {
@@ -117,16 +125,24 @@ public class TutorRagService implements AskTutorUseCase {
                 .withTopK(4)
                 .withFilterExpression(filterExpression);
 
-        List<Document> similarDocuments;
+        List<Document> similarDocuments = Collections.emptyList();
         try {
             similarDocuments = vectorStore.similaritySearch(searchRequest);
         } catch (Exception e) {
-            log.error("Erro na busca por similaridade vetorial para aula {}: {}", query.lessonId(), e.getMessage(), e);
-            similarDocuments = Collections.emptyList();
+            log.error("Erro na busca por similaridade vetorial para aula {}: {}", query.lessonId(), e.getMessage());
         }
 
         if (similarDocuments.isEmpty()) {
-            log.warn("Nenhum documento encontrado na busca vetorial para a aula {}", query.lessonId());
+            log.info("Nenhum documento específico encontrado para aula {}. Realizando busca global na base de conhecimento...", query.lessonId());
+            try {
+                similarDocuments = vectorStore.similaritySearch(SearchRequest.query(query.question()).withTopK(4));
+            } catch (Exception e) {
+                log.error("Erro na busca global vetorial: {}", e.getMessage());
+            }
+        }
+
+        if (similarDocuments.isEmpty()) {
+            log.warn("Nenhum documento encontrado na base vetorial para a pergunta: {}", query.question());
             return TutorAnswer.builder()
                     .lessonId(query.lessonId())
                     .answer("Olá! Seja muito bem-vindo ao nosso programa de formação cooperativa. Não encontrei informações específicas sobre este tópico no conteúdo cadastrado para esta aula. Por favor, consulte seu gestor ou o instrutor responsável pela trilha para obter mais detalhes!")
