@@ -45,30 +45,49 @@ export const useAiTutorStore = defineStore('aiTutor', () => {
     isThinking.value = true;
 
     try {
-      // First try real backend endpoint
-      const response = await api.askTutor(lessonId, question);
-      messages.value.push({
-        id: `tutor-${Date.now()}`,
+      // 1. Tenta Streaming SSE progressivo em tempo real
+      const tutorMessageId = `tutor-${Date.now()}`;
+      const tutorMessage: AiMessage = {
+        id: tutorMessageId,
         sender: 'tutor',
-        text: response.answer,
+        text: '',
         timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-        sources: response.sources && response.sources.length > 0 ? response.sources : [
+        sources: [
           `Base de Conhecimento: Aula "${lessonTitle || 'Geral'}"`,
           'Normativas de Integração e Governança Cooperativista',
         ],
-      });
-    } catch {
-      // Graceful contextual fallback simulating RAG synthesis if backend is unreachable
-      await new Promise((resolve) => setTimeout(resolve, 850));
+      };
+      messages.value.push(tutorMessage);
 
-      const fallbackAnswer = generateContextualAnswer(question, lessonTitle, lessonContent);
-      messages.value.push({
-        id: `tutor-${Date.now()}`,
-        sender: 'tutor',
-        text: fallbackAnswer.text,
-        timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-        sources: fallbackAnswer.sources,
+      await api.streamTutor(lessonId, question, (chunk) => {
+        isThinking.value = false;
+        tutorMessage.text += chunk;
       });
+
+      if (!tutorMessage.text.trim()) {
+        const response = await api.askTutor(lessonId, question);
+        tutorMessage.text = response.answer;
+        if (response.sources && response.sources.length > 0) {
+          tutorMessage.sources = response.sources;
+        }
+      }
+    } catch {
+      // Graceful contextual fallback em caso de indisponibilidade
+      isThinking.value = false;
+      const fallbackAnswer = generateContextualAnswer(question, lessonTitle, lessonContent);
+      const lastMsg = messages.value[messages.value.length - 1];
+      if (lastMsg && lastMsg.sender === 'tutor' && !lastMsg.text.trim()) {
+        lastMsg.text = fallbackAnswer.text;
+        lastMsg.sources = fallbackAnswer.sources;
+      } else {
+        messages.value.push({
+          id: `tutor-${Date.now()}`,
+          sender: 'tutor',
+          text: fallbackAnswer.text,
+          timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+          sources: fallbackAnswer.sources,
+        });
+      }
     } finally {
       isThinking.value = false;
     }

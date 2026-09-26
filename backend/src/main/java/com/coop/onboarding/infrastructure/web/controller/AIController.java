@@ -22,6 +22,12 @@ import org.springframework.web.bind.annotation.RestController;
 import java.util.Map;
 import java.util.UUID;
 
+import com.coop.onboarding.application.ai.AskTutorQuery;
+import org.springframework.http.MediaType;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import reactor.core.publisher.Flux;
+
 @RestController
 @RequestMapping("/api/v1/ai")
 public class AIController {
@@ -60,6 +66,27 @@ public class AIController {
     ) {
         TutorAnswer answer = askTutorUseCase.execute(request.toQuery());
         return ResponseEntity.ok(AskTutorResponse.fromDomain(answer));
+    }
+
+    @GetMapping(value = "/tutor/stream", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
+    @PreAuthorize("isAuthenticated()")
+    public Flux<String> streamTutor(
+            @RequestParam String lessonId,
+            @RequestParam String question
+    ) {
+        UUID parsedLessonId = parseLessonId(lessonId);
+        return askTutorUseCase.stream(new AskTutorQuery(parsedLessonId, question));
+    }
+
+    private UUID parseLessonId(String rawId) {
+        if (rawId == null || rawId.isBlank()) {
+            return UUID.fromString("d1a2b3c4-0001-4000-8000-000000000001");
+        }
+        try {
+            return UUID.fromString(rawId);
+        } catch (IllegalArgumentException e) {
+            return UUID.nameUUIDFromBytes(rawId.getBytes(java.nio.charset.StandardCharsets.UTF_8));
+        }
     }
 
     @PostMapping("/quiz/generate")

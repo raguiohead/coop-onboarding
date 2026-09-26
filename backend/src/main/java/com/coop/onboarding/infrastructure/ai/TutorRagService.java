@@ -11,9 +11,13 @@ import org.springframework.ai.vectorstore.SearchRequest;
 import org.springframework.ai.vectorstore.VectorStore;
 import org.springframework.stereotype.Service;
 
+import reactor.core.publisher.Flux;
+
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
 @Service
@@ -33,14 +37,79 @@ public class TutorRagService implements AskTutorUseCase {
 
     private final VectorStore vectorStore;
     private final ChatClient chatClient;
+    private final Map<String, TutorAnswer> answerCache = new ConcurrentHashMap<>();
 
     public TutorRagService(VectorStore vectorStore, ChatClient chatClient) {
         this.vectorStore = vectorStore;
         this.chatClient = chatClient;
     }
 
+    public void warmup() {
+        try {
+            log.info("Iniciando warm-up do modelo Ollama na memória...");
+            chatClient.prompt()
+                    .user("ping")
+                    .call()
+                    .content();
+            log.info("Warm-up concluído com sucesso. Modelo mantido em memória (keep_alive: 24h).");
+        } catch (Exception e) {
+            log.warn("Warm-up não pôde ser concluído imediatamente: {}", e.getMessage());
+        }
+    }
+
+    public Flux<String> stream(AskTutorQuery query) {
+        log.info("Streaming de resposta do Tutor Virtual na aula id={}", query.lessonId());
+
+        String filterExpression = "lessonId == '" + query.lessonId() + "'";
+        SearchRequest searchRequest = SearchRequest.query(query.question())
+                .withTopK(4)
+                .withFilterExpression(filterExpression);
+
+        List<Document> similarDocuments;
+        try {
+            similarDocuments = vectorStore.similaritySearch(searchRequest);
+        } catch (Exception e) {
+            log.error("Erro na busca por similaridade vetorial para streaming: {}", e.getMessage());
+            similarDocuments = Collections.emptyList();
+        }
+
+        if (similarDocuments.isEmpty()) {
+            return Flux.just("Olá! Seja muito bem-vindo ao nosso programa de formação cooperativa. Não encontrei informações específicas sobre este tópico no conteúdo cadastrado para esta aula. Por favor, consulte seu gestor ou o instrutor responsável pela trilha para obter mais detalhes!");
+        }
+
+        String context = similarDocuments.stream()
+                .map(Document::getContent)
+                .filter(Objects::nonNull)
+                .collect(Collectors.joining("\n\n---\n\n"));
+
+        String userPrompt = String.format("""
+                Conteúdo de apoio da Aula:
+                %s
+
+                Pergunta do Colaborador:
+                %s
+                """, context, query.question());
+
+        try {
+            return chatClient.prompt()
+                    .system(TUTOR_SYSTEM_PROMPT)
+                    .user(userPrompt)
+                    .stream()
+                    .content();
+        } catch (Exception e) {
+            log.error("Erro ao iniciar streaming com LLM: {}", e.getMessage(), e);
+            return Flux.just("Olá! Ocorreu uma instabilidade temporária ao consultar o Tutor Virtual. Por favor, tente novamente em instantes.");
+        }
+    }
+
     @Override
     public TutorAnswer execute(AskTutorQuery query) {
+        String cacheKey = query.lessonId() + ":" + query.question().trim().toLowerCase();
+        TutorAnswer cached = answerCache.get(cacheKey);
+        if (cached != null) {
+            log.info("Resposta do Tutor recuperada do cache para aula id={}", query.lessonId());
+            return cached;
+        }
         log.info("Processando pergunta para o Tutor Virtual na aula id={}", query.lessonId());
 
         String filterExpression = "lessonId == '" + query.lessonId() + "'";
@@ -106,10 +175,13 @@ public class TutorRagService implements AskTutorUseCase {
             generatedAnswer = "Olá! Ocorreu uma instabilidade temporária ao consultar o Tutor Virtual. Por favor, tente novamente em instantes ou consulte diretamente seu gestor ou instrutor de onboarding.";
         }
 
-        return TutorAnswer.builder()
+        TutorAnswer answer = TutorAnswer.builder()
                 .lessonId(query.lessonId())
                 .answer(generatedAnswer)
                 .sources(sources)
                 .build();
+
+        answerCache.put(cacheKey, answer);
+        return answer;
     }
 }
