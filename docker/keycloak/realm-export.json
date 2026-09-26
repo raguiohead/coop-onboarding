@@ -114,9 +114,9 @@
       "username": "colaborador",
       "enabled": true,
       "emailVerified": true,
-      "firstName": "Colaborador",
-      "lastName": "Novo",
-      "email": "colaborador@coop.local",
+      "firstName": "Ana Carolina",
+      "lastName": "Silva",
+      "email": "ana.silva@coop.local",
       "credentials": [
         {
           "type": "password",
@@ -126,6 +126,42 @@
       ],
       "realmRoles": [
         "ROLE_COLABORADOR"
+      ]
+    },
+    {
+      "username": "carlos",
+      "enabled": true,
+      "emailVerified": true,
+      "firstName": "Carlos",
+      "lastName": "Souza",
+      "email": "carlos.souza@coop.local",
+      "credentials": [
+        {
+          "type": "password",
+          "value": "carlos123",
+          "temporary": false
+        }
+      ],
+      "realmRoles": [
+        "ROLE_COLABORADOR"
+      ]
+    },
+    {
+      "username": "fernanda",
+      "enabled": true,
+      "emailVerified": true,
+      "firstName": "Fernanda",
+      "lastName": "Lima",
+      "email": "fernanda.lima@coop.local",
+      "credentials": [
+        {
+          "type": "password",
+          "value": "fernanda123",
+          "temporary": false
+        }
+      ],
+      "realmRoles": [
+        "ROLE_GESTOR"
       ]
     }
   ]
