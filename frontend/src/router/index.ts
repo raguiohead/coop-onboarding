@@ -5,6 +5,7 @@ import QuizzesView from '@/views/QuizzesView.vue';
 import ManagementView from '@/views/ManagementView.vue';
 import ProfileView from '@/views/ProfileView.vue';
 import LoginView from '@/views/LoginView.vue';
+import TracksView from '@/views/TracksView.vue';
 import CodeOfConductView from '@/views/CodeOfConductView.vue';
 import SecurityPrivacyView from '@/views/SecurityPrivacyView.vue';
 import SupportView from '@/views/SupportView.vue';
@@ -23,6 +24,11 @@ const router = createRouter({
       path: '/',
       name: 'dashboard',
       component: DashboardView,
+    },
+    {
+      path: '/trilhas',
+      name: 'trilhas',
+      component: TracksView,
     },
     {
       path: '/tracks/:trackId/lessons/:lessonId',

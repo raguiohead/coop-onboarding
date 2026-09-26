@@ -79,14 +79,14 @@ function handleLogout() {
             <span>Painel Geral</span>
           </router-link>
 
-          <a
-            href="#trilhas"
-            @click.prevent="navigateToHome"
+          <router-link
+            to="/trilhas"
             class="px-3 py-2 rounded-lg text-sm font-medium transition-colors flex items-center space-x-1.5 text-slate-600 hover:text-brand-700 hover:bg-brand-50"
+            active-class="!text-brand-700 !bg-brand-50 font-semibold"
           >
             <BookOpen class="w-4 h-4" />
             <span>Trilhas</span>
-          </a>
+          </router-link>
 
           <router-link
             to="/quizzes"
@@ -109,22 +109,8 @@ function handleLogout() {
 
         </nav>
 
-        <!-- Right Side: Tutor AI Button + User Switcher -->
+        <!-- Right Side: User Switcher (Tutor IA removed from topbar, fixed in bottom-right) -->
         <div class="flex items-center space-x-3">
-          <!-- AI Tutor trigger button -->
-          <button
-            @click="aiTutorStore.openDrawer"
-            class="group relative inline-flex items-center space-x-2 px-3.5 py-2 rounded-xl text-xs sm:text-sm font-semibold bg-gradient-to-r from-ai-500 to-indigo-600 hover:from-ai-600 hover:to-indigo-700 text-white shadow-md shadow-ai-500/20 transition-all duration-200 hover:scale-[1.02] active:scale-[0.98]"
-            title="Abrir Tutor Virtual de IA"
-          >
-            <span class="relative flex h-2 w-2">
-              <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-white opacity-75"></span>
-              <span class="relative inline-flex rounded-full h-2 w-2 bg-emerald-400"></span>
-            </span>
-            <Sparkles class="w-4 h-4 text-ai-100 group-hover:rotate-12 transition-transform duration-300" />
-            <span class="hidden sm:inline">Tutor IA</span>
-          </button>
-
           <!-- User Role & Switcher Menu -->
           <div class="relative">
             <button

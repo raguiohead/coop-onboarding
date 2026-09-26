@@ -90,8 +90,27 @@ async function runE2E() {
       console.log('✅ Perfil alterado para Mariana Duarte (ADMIN) — Acessos de infraestrutura e governança validados.');
     }
 
-    // 3. Página Dedicada de Quizzes (/quizzes)
-    console.log('\n📍 [3/7] Testando Página de Quizzes & Avaliações (/quizzes)...');
+    // 3. Teste de Navegação para Trilhas pelo Header
+    console.log('\n📍 [3/10] Testando Navegação para Trilhas (/trilhas) pelo Header...');
+    const trilhasLink = page.locator('header nav a').filter({ hasText: 'Trilhas' });
+    await trilhasLink.click();
+    await page.waitForTimeout(1000);
+    const currentUrl = page.url();
+    console.log(`ℹ️ URL atual após clicar em Trilhas: ${currentUrl}`);
+    if (currentUrl.includes('/trilhas')) {
+      console.log('✅ Navegação para tela dedicada de Trilhas (/trilhas) confirmada com sucesso.');
+    } else {
+      throw new Error(`Esperado /trilhas, mas obteve ${currentUrl}`);
+    }
+    await page.screenshot({ path: path.join(screenshotsDir, '04b-trilhas-view.png'), fullPage: true });
+
+    // Verificar remoção do botão de Tutor IA no topbar
+    const topbarTutorBtn = page.locator('header button:has-text("Tutor IA")');
+    const topbarTutorCount = await topbarTutorBtn.count();
+    console.log(`ℹ️ Botão Tutor IA no topbar presente? ${topbarTutorCount > 0 ? 'SIM' : 'NÃO (Removido com sucesso)'}`);
+
+    // 4. Página Dedicada de Quizzes (/quizzes)
+    console.log('\n📍 [4/10] Testando Página de Quizzes & Avaliações (/quizzes)...');
     await page.goto('http://localhost:5173/quizzes', { waitUntil: 'networkidle' });
     await page.waitForTimeout(1000);
     await page.screenshot({ path: path.join(screenshotsDir, '05-quizzes-view.png'), fullPage: true });
