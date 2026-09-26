@@ -17,8 +17,8 @@ const isLoginPage = computed(() => route.path === '/login');
     <!-- Header (Oculto na tela de login) -->
     <AppHeader v-if="!isLoginPage" />
 
-    <!-- Main Content Container -->
-    <div :class="['flex-1 w-full mx-auto', isLoginPage ? 'p-0 max-w-none' : 'max-w-7xl px-4 sm:px-6 lg:px-8 pt-8']">
+    <!-- Main Content Container (Largura expandida com margens reduzidas) -->
+    <div :class="['flex-1 w-full mx-auto', isLoginPage ? 'p-0 max-w-none' : 'max-w-[1780px] px-3 sm:px-5 lg:px-8 xl:px-10 pt-6 pb-12']">
       <router-view v-slot="{ Component }">
         <transition name="fade" mode="out-in">
           <component :is="Component" />
@@ -28,7 +28,7 @@ const isLoginPage = computed(() => route.path === '/login');
 
     <!-- Corporate Footer (Oculto na tela de login) -->
     <footer v-if="!isLoginPage" class="mt-auto border-t border-slate-200/80 bg-white py-6 text-xs text-slate-500">
-      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-4">
+      <div class="max-w-[1780px] mx-auto px-3 sm:px-5 lg:px-8 xl:px-10 flex flex-col sm:flex-row items-center justify-between gap-4">
         <div class="flex items-center space-x-2.5">
           <div class="w-6 h-6 rounded-lg bg-gradient-to-br from-brand-600 to-brand-800 flex items-center justify-center text-white shadow-xs shrink-0">
             <svg class="w-3.5 h-3.5 text-brand-100" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">

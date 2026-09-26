@@ -62,23 +62,23 @@ const defaultMembers: TeamMember[] = [
     role: 'COLABORADOR',
     department: 'Atendimento & Cooperados',
     trackTitle: 'Cultura & Governança Cooperativista',
-    currentModule: 'Módulo 2: Governança Cooperativa',
-    currentLesson: 'Lição 2.2: O Papel dos Conselhos de Administração e Fiscal',
-    completedCount: 5,
+    currentModule: 'Módulo 1: Princípios e História',
+    currentLesson: 'Lição 1.1: Origens em Rochdale e os 7 Princípios da ACI',
+    completedCount: 0,
     totalCount: 6,
-    progress: 83,
-    slaDaysLeft: 8,
+    progress: 0,
+    slaDaysLeft: 14,
     status: 'NO_PRAZO',
     avatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150&auto=format&fit=crop&q=80',
-    quizzesCompleted: '2 de 3',
-    quizScoreAverage: '100%',
-    lastActive: 'Hoje às 10:45',
+    quizzesCompleted: '0 de 3',
+    quizScoreAverage: 'Pendente',
+    lastActive: 'Aguardando Início',
     lessons: [
-      { module: 'Módulo 1: Princípios e História', title: 'Origens em Rochdale e os 7 Princípios da ACI', duration: '12 min', completed: true, completedAt: '24/09 às 09:15' },
-      { module: 'Módulo 1: Princípios e História', title: 'A Legislação Cooperativista Brasileira (Lei 5.764/71)', duration: '18 min', completed: true, completedAt: '24/09 às 11:30' },
-      { module: 'Módulo 1: Princípios e História', title: 'Cooperativas de Crédito x Bancos Comerciais', duration: '15 min', completed: true, completedAt: '25/09 às 14:00' },
-      { module: 'Módulo 2: Governança Cooperativa', title: 'Estrutura da Assembleia Geral Ordinária (AGO)', duration: '20 min', completed: true, completedAt: '25/09 às 16:45' },
-      { module: 'Módulo 2: Governança Cooperativa', title: 'Atos Cooperativos e Não Cooperativos na Prática', duration: '15 min', completed: true, completedAt: 'Hoje às 10:10' },
+      { module: 'Módulo 1: Princípios e História', title: 'Origens em Rochdale e os 7 Princípios da ACI', duration: '12 min', completed: false },
+      { module: 'Módulo 1: Princípios e História', title: 'A Legislação Cooperativista Brasileira (Lei 5.764/71)', duration: '18 min', completed: false },
+      { module: 'Módulo 1: Princípios e História', title: 'Cooperativas de Crédito x Bancos Comerciais', duration: '15 min', completed: false },
+      { module: 'Módulo 2: Governança Cooperativa', title: 'Estrutura da Assembleia Geral Ordinária (AGO)', duration: '20 min', completed: false },
+      { module: 'Módulo 2: Governança Cooperativa', title: 'Atos Cooperativos e Não Cooperativos na Prática', duration: '15 min', completed: false },
       { module: 'Módulo 2: Governança Cooperativa', title: 'O Papel dos Conselhos de Administração e Fiscal', duration: '25 min', completed: false },
     ],
   },
@@ -89,21 +89,21 @@ const defaultMembers: TeamMember[] = [
     role: 'COLABORADOR',
     department: 'Engenharia de TI & Inovação',
     trackTitle: 'Arquitetura de Sistemas & Segurança Bancária',
-    currentModule: 'Módulo 2: Segurança da Informação & Ciberdefesa',
-    currentLesson: 'Lição 2.1: Resolução CMN nº 4.893 e Política de Cibersegurança',
-    completedCount: 3,
+    currentModule: 'Módulo 1: Fundamentos de Tecnologia Bancária',
+    currentLesson: 'Lição 1.1: Visão Geral do Core Bancário e Barramento de Mensageria',
+    completedCount: 0,
     totalCount: 6,
-    progress: 50,
-    slaDaysLeft: 12,
+    progress: 0,
+    slaDaysLeft: 14,
     status: 'NO_PRAZO',
     avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80',
-    quizzesCompleted: '1 de 3',
-    quizScoreAverage: '67%',
-    lastActive: 'Ontem às 17:20',
+    quizzesCompleted: '0 de 3',
+    quizScoreAverage: 'Pendente',
+    lastActive: 'Aguardando Início',
     lessons: [
-      { module: 'Módulo 1: Fundamentos de Tecnologia Bancária', title: 'Visão Geral do Core Bancário e Barramento de Mensageria', duration: '25 min', completed: true, completedAt: '24/09 às 14:20' },
-      { module: 'Módulo 1: Fundamentos de Tecnologia Bancária', title: 'Segurança Perimetral, Criptografia e TLS 1.3', duration: '20 min', completed: true, completedAt: '25/09 às 10:15' },
-      { module: 'Módulo 1: Fundamentos de Tecnologia Bancária', title: 'Topologia em Nuvem Privada e Continuidade de Negócios', duration: '18 min', completed: true, completedAt: '25/09 às 15:30' },
+      { module: 'Módulo 1: Fundamentos de Tecnologia Bancária', title: 'Visão Geral do Core Bancário e Barramento de Mensageria', duration: '25 min', completed: false },
+      { module: 'Módulo 1: Fundamentos de Tecnologia Bancária', title: 'Segurança Perimetral, Criptografia e TLS 1.3', duration: '20 min', completed: false },
+      { module: 'Módulo 1: Fundamentos de Tecnologia Bancária', title: 'Topologia em Nuvem Privada e Continuidade de Negócios', duration: '18 min', completed: false },
       { module: 'Módulo 2: Segurança da Informação', title: 'Resolução CMN nº 4.893 e Política de Cibersegurança', duration: '22 min', completed: false },
       { module: 'Módulo 2: Segurança da Informação', title: 'Plano de Resposta a Incidentes de Ciberataque e DR', duration: '30 min', completed: false },
       { module: 'Módulo 2: Segurança da Informação', title: 'Gestão de Identidade, Zero Trust e Keycloak RBAC', duration: '25 min', completed: false },
@@ -117,18 +117,18 @@ const defaultMembers: TeamMember[] = [
     department: 'Crédito Imobiliário & Rural',
     trackTitle: 'Políticas de Crédito & Gestão de Riscos',
     currentModule: 'Módulo 1: Regulamentação de Crédito',
-    currentLesson: 'Lição 1.2: Resolução CMN 2.682/1999 e Classificação de Risco',
-    completedCount: 1,
+    currentLesson: 'Lição 1.1: Fundamentos da Resolução CMN 4.557 e Riscos Integrados',
+    completedCount: 0,
     totalCount: 5,
-    progress: 20,
-    slaDaysLeft: 2,
-    status: 'ALERTA',
+    progress: 0,
+    slaDaysLeft: 14,
+    status: 'NO_PRAZO',
     avatar: 'https://images.unsplash.com/photo-1517841905240-472988babdf9?w=150&auto=format&fit=crop&q=80',
     quizzesCompleted: '0 de 2',
     quizScoreAverage: 'Pendente',
-    lastActive: 'Há 3 dias',
+    lastActive: 'Aguardando Início',
     lessons: [
-      { module: 'Módulo 1: Regulamentação de Crédito', title: 'Fundamentos da Resolução CMN 4.557 e Riscos Integrados', duration: '15 min', completed: true, completedAt: '22/09 às 11:00' },
+      { module: 'Módulo 1: Regulamentação de Crédito', title: 'Fundamentos da Resolução CMN 4.557 e Riscos Integrados', duration: '15 min', completed: false },
       { module: 'Módulo 1: Regulamentação de Crédito', title: 'Resolução CMN 2.682/1999 e Classificação de Risco (AA a H)', duration: '25 min', completed: false },
       { module: 'Módulo 1: Regulamentação de Crédito', title: 'Provisão para Devedores Duvidosos (PDD) e Perdas Esperadas', duration: '20 min', completed: false },
       { module: 'Módulo 2: Modalidades Cooperativas', title: 'Operações de Crédito Rural e Pronaf', duration: '30 min', completed: false },
@@ -142,24 +142,24 @@ const defaultMembers: TeamMember[] = [
     role: 'COLABORADOR',
     department: 'Controladoria & Contabilidade',
     trackTitle: 'Contabilidade Cooperativa & Sobras Líquidas',
-    currentModule: 'Módulo 3: Demonstrações Contábeis & Auditoria',
-    currentLesson: 'Trilha 100% Concluída — Certificado Emitido',
-    completedCount: 6,
+    currentModule: 'Módulo 1: COSIF e NBC T 10.8',
+    currentLesson: 'Lição 1.1: Estrutura do Plano de Contas das Instituições Financeiras',
+    completedCount: 0,
     totalCount: 6,
-    progress: 100,
-    slaDaysLeft: 0,
-    status: 'CONCLUIDO',
+    progress: 0,
+    slaDaysLeft: 14,
+    status: 'NO_PRAZO',
     avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150&auto=format&fit=crop&q=80',
-    quizzesCompleted: '3 de 3',
-    quizScoreAverage: '96%',
-    lastActive: 'Concluído em 24/09',
+    quizzesCompleted: '0 de 3',
+    quizScoreAverage: 'Pendente',
+    lastActive: 'Aguardando Início',
     lessons: [
-      { module: 'Módulo 1: COSIF e NBC T 10.8', title: 'Estrutura do Plano de Contas das Instituições Financeiras', duration: '20 min', completed: true, completedAt: '23/09 às 09:00' },
-      { module: 'Módulo 1: COSIF e NBC T 10.8', title: 'Contabilização do Capital Social e Quotas-Partes', duration: '15 min', completed: true, completedAt: '23/09 às 11:15' },
-      { module: 'Módulo 2: Sobras e Perdas', title: 'Cálculo e Destinação das Sobras Líquidas do Exercício', duration: '25 min', completed: true, completedAt: '23/09 às 15:30' },
-      { module: 'Módulo 2: Sobras e Perdas', title: 'Constituição do FATES e Reserva Legal Obrigatória', duration: '18 min', completed: true, completedAt: '24/09 às 10:20' },
-      { module: 'Módulo 3: Demonstrações', title: 'Balanço Patrimonial Cooperativo e DVA', duration: '22 min', completed: true, completedAt: '24/09 às 14:00' },
-      { module: 'Módulo 3: Demonstrações', title: 'Prestação de Contas aos Associados e Auditoria Independente', duration: '20 min', completed: true, completedAt: '24/09 às 16:30' },
+      { module: 'Módulo 1: COSIF e NBC T 10.8', title: 'Estrutura do Plano de Contas das Instituições Financeiras', duration: '20 min', completed: false },
+      { module: 'Módulo 1: COSIF e NBC T 10.8', title: 'Contabilização do Capital Social e Quotas-Partes', duration: '15 min', completed: false },
+      { module: 'Módulo 2: Sobras e Perdas', title: 'Cálculo e Destinação das Sobras Líquidas do Exercício', duration: '25 min', completed: false },
+      { module: 'Módulo 2: Sobras e Perdas', title: 'Constituição do FATES e Reserva Legal Obrigatória', duration: '18 min', completed: false },
+      { module: 'Módulo 3: Demonstrações', title: 'Balanço Patrimonial Cooperativo e DVA', duration: '22 min', completed: false },
+      { module: 'Módulo 3: Demonstrações', title: 'Prestação de Contas aos Associados e Auditoria Independente', duration: '20 min', completed: false },
     ],
   },
   {
@@ -206,6 +206,12 @@ const defaultMembers: TeamMember[] = [
 
 const authStore = useAuthStore();
 const isQuizModalOpen = ref(false);
+
+// Zerar dados caso ainda esteja na versão anterior
+if (typeof window !== 'undefined' && localStorage.getItem('coop_zeroed_v3') !== 'true') {
+  localStorage.setItem('coop_zeroed_v3', 'true');
+  localStorage.setItem('coop_team_members', JSON.stringify(defaultMembers));
+}
 
 // Persistência de Membros da Equipe no LocalStorage
 const savedTeam = localStorage.getItem('coop_team_members');
@@ -522,30 +528,30 @@ function sendSupportReminder(member: TeamMember) {
         <table class="w-full text-left border-collapse">
           <thead>
             <tr class="bg-slate-50/80 text-[11px] font-bold uppercase tracking-wider text-slate-400 border-b border-slate-100">
-              <th class="px-6 py-3.5">Profissional</th>
-              <th class="px-6 py-3.5">Papel</th>
-              <th class="px-6 py-3.5">Trilha Atribuída & Onde Está</th>
-              <th class="px-6 py-3.5">Progresso</th>
-              <th class="px-6 py-3.5">SLA Restante</th>
-              <th class="px-6 py-3.5">Quizzes</th>
-              <th class="px-6 py-3.5">Status</th>
-              <th class="px-6 py-3.5 text-center">Raio-X</th>
-              <th v-if="authStore.isAdmin" class="px-6 py-3.5 text-right">Ações Admin</th>
+              <th class="px-6 py-3.5 whitespace-nowrap">Profissional</th>
+              <th class="px-6 py-3.5 whitespace-nowrap">Papel</th>
+              <th class="px-6 py-3.5 whitespace-nowrap">Trilha Atribuída & Onde Está</th>
+              <th class="px-6 py-3.5 whitespace-nowrap">Progresso</th>
+              <th class="px-6 py-3.5 whitespace-nowrap">SLA Restante</th>
+              <th class="px-6 py-3.5 whitespace-nowrap">Quizzes</th>
+              <th class="px-6 py-3.5 whitespace-nowrap">Status</th>
+              <th class="px-6 py-3.5 text-center whitespace-nowrap">Raio-X</th>
+              <th v-if="authStore.isAdmin" class="px-6 py-3.5 text-right whitespace-nowrap">Ações Admin</th>
             </tr>
           </thead>
           <tbody class="divide-y divide-slate-100 text-xs">
             <tr v-for="member in filteredMembers" :key="member.id" class="hover:bg-slate-50/60 transition-colors">
-              <td class="px-6 py-4 flex items-center space-x-3">
+              <td class="px-6 py-4 flex items-center space-x-3 whitespace-nowrap">
                 <img :src="member.avatar" class="w-9 h-9 rounded-full object-cover border border-slate-200" />
                 <div>
                   <p class="font-bold text-slate-900">{{ member.name }}</p>
                   <p class="text-[11px] text-slate-500">{{ member.email }} · {{ member.department }}</p>
                 </div>
               </td>
-              <td class="px-6 py-4">
+              <td class="px-6 py-4 whitespace-nowrap">
                 <span
                   :class="[
-                    'px-2 py-0.5 rounded text-[10px] font-bold uppercase border',
+                    'px-2 py-0.5 rounded text-[10px] font-bold uppercase border whitespace-nowrap',
                     member.role === 'GESTOR' ? 'bg-indigo-50 text-indigo-700 border-indigo-200' : 'bg-teal-50 text-teal-700 border-teal-200'
                   ]"
                 >
@@ -556,7 +562,7 @@ function sendSupportReminder(member: TeamMember) {
                 <p class="text-slate-800 font-bold leading-tight">{{ member.trackTitle }}</p>
                 <div v-if="member.role === 'COLABORADOR'" class="mt-1.5 flex items-center space-x-1.5">
                   <span
-                    class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-lg text-[10px] font-semibold border max-w-[280px]"
+                    class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-lg text-[10px] font-semibold border max-w-[280px] whitespace-nowrap"
                     :class="[
                       member.status === 'CONCLUIDO'
                         ? 'bg-teal-50 text-teal-800 border-teal-200'
@@ -576,7 +582,7 @@ function sendSupportReminder(member: TeamMember) {
                 </div>
                 <p v-else class="text-[11px] text-slate-400 mt-0.5">Visão de Governança & Supervisão</p>
               </td>
-              <td class="px-6 py-4 w-44">
+              <td class="px-6 py-4 w-44 whitespace-nowrap">
                 <div v-if="member.role === 'COLABORADOR'" class="flex items-center space-x-2">
                   <div class="flex-1 bg-slate-100 h-2 rounded-full overflow-hidden">
                     <div class="bg-brand-600 h-full rounded-full transition-all" :style="{ width: `${member.progress}%` }"></div>
@@ -587,7 +593,7 @@ function sendSupportReminder(member: TeamMember) {
                   Liderança Pedagógica
                 </span>
               </td>
-              <td class="px-6 py-4 font-medium text-slate-600">
+              <td class="px-6 py-4 font-medium text-slate-600 whitespace-nowrap">
                 <span v-if="member.role === 'GESTOR'" class="text-slate-400 text-[11px]">
                   Permanente
                 </span>
@@ -601,13 +607,13 @@ function sendSupportReminder(member: TeamMember) {
                   {{ member.slaDaysLeft }} dias
                 </span>
               </td>
-              <td class="px-6 py-4 font-semibold text-slate-700">
+              <td class="px-6 py-4 font-semibold text-slate-700 whitespace-nowrap">
                 {{ member.quizzesCompleted }}
               </td>
-              <td class="px-6 py-4">
+              <td class="px-6 py-4 whitespace-nowrap">
                 <span
                   :class="[
-                    'px-2 py-0.5 rounded text-[10px] font-bold uppercase border',
+                    'px-2.5 py-1 rounded-md text-[10px] font-bold uppercase border whitespace-nowrap inline-flex items-center gap-1',
                     member.status === 'CONCLUIDO'
                       ? 'bg-teal-50 text-teal-700 border-teal-200'
                       : member.status === 'ALERTA'
@@ -620,7 +626,7 @@ function sendSupportReminder(member: TeamMember) {
               </td>
 
               <!-- Raio-X Detalhado -->
-              <td class="px-6 py-4 text-center">
+              <td class="px-6 py-4 text-center whitespace-nowrap">
                 <button
                   v-if="member.role === 'COLABORADOR'"
                   @click="openRaioXModal(member)"
@@ -634,7 +640,7 @@ function sendSupportReminder(member: TeamMember) {
               </td>
 
               <!-- Coluna de Ações Admin -->
-              <td v-if="authStore.isAdmin" class="px-6 py-4 text-right">
+              <td v-if="authStore.isAdmin" class="px-6 py-4 text-right whitespace-nowrap">
                 <div class="flex items-center justify-end space-x-2">
                   <button
                     @click="openEditMemberModal(member)"

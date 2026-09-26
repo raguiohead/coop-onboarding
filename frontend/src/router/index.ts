@@ -44,6 +44,7 @@ const router = createRouter({
       path: '/gestao',
       name: 'gestao',
       component: ManagementView,
+      meta: { roles: ['GESTOR', 'ADMIN'] },
     },
     {
       path: '/perfil',
@@ -85,6 +86,16 @@ router.beforeEach(async (to, from, next) => {
   if (!authStore.token) {
     await authStore.syncKeycloakToken(authStore.currentUser.id);
   }
+
+  // Controle Estrito de Acesso RBAC: impede acesso não autorizado
+  if (to.meta.roles && Array.isArray(to.meta.roles)) {
+    const userRole = authStore.currentUser.role;
+    if (!to.meta.roles.includes(userRole)) {
+      next('/');
+      return;
+    }
+  }
+
   next();
 });
 

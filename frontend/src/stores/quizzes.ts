@@ -156,21 +156,8 @@ export const initialQuizzes: QuizItem[] = [
   },
 ];
 
-// Progresso inicial por perfil de colaborador
-const initialUserQuizzesMap: Record<string, Record<string, UserQuizProgress>> = {
-  // Ana Carolina (Alta performance: 2 quizzes concluídos, 100% de aproveitamento)
-  '11111111-1111-1111-1111-111111111111': {
-    'quiz-01': { status: 'COMPLETED', score: 100, completedAt: '25/09/2026', answers: { 0: 1, 1: 0, 2: 0 } },
-    'quiz-02': { status: 'COMPLETED', score: 100, completedAt: '26/09/2026', answers: { 0: 1, 1: 1, 2: 0 } },
-    'quiz-03': { status: 'PENDING' },
-  },
-  // Carlos Souza (Em desenvolvimento: 1 quiz concluído com 67%, 2 pendentes)
-  '44444444-4444-4444-4444-444444444444': {
-    'quiz-01': { status: 'COMPLETED', score: 67, completedAt: '24/09/2026', answers: { 0: 1, 1: 0, 2: 1 } },
-    'quiz-02': { status: 'PENDING' },
-    'quiz-03': { status: 'PENDING' },
-  },
-};
+// Progresso inicial limpo: todos os quizzes iniciam pendentes para todos os colaboradores
+const initialUserQuizzesMap: Record<string, Record<string, UserQuizProgress>> = {};
 
 export const useQuizStore = defineStore('quizzes', () => {
   const authStore = useAuthStore();
@@ -259,6 +246,15 @@ export const useQuizStore = defineStore('quizzes', () => {
     localStorage.setItem('coop_master_quizzes', JSON.stringify(quizzes.value));
   }
 
+  function resetAllQuizzes() {
+    userProgress.value = {};
+    Object.keys(localStorage).forEach((k) => {
+      if (k.startsWith('coop_quiz_progress_')) {
+        localStorage.removeItem(k);
+      }
+    });
+  }
+
   return {
     quizzes,
     quizzesForCurrentUser,
@@ -266,6 +262,7 @@ export const useQuizStore = defineStore('quizzes', () => {
     averageQuizScore,
     saveQuizAttempt,
     resetQuizAttempt,
+    resetAllQuizzes,
     addAiGeneratedQuiz,
     initUserProgress,
   };

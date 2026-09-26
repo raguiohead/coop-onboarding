@@ -5,10 +5,7 @@ import { api } from '@/api/client';
 import { useAuthStore } from './auth';
 
 const initialCompletionsByUser: Record<string, string[]> = {
-  // Ana Carolina Silva (Alta conclusão: 3 lições concluídas na Trilha Principal)
-  '11111111-1111-1111-1111-111111111111': ['les-101-1', 'les-101-2', 'les-102-1'],
-  // Carlos Souza (Em início de jornada: 1 lição concluída)
-  '44444444-4444-4444-4444-444444444444': ['les-101-1'],
+  // Inicialização limpa: todos os colaboradores iniciam do zero
 };
 
 export const mockTracks: Track[] = [
@@ -34,7 +31,7 @@ export const mockTracks: Track[] = [
             title: 'Os 7 Princípios do Cooperativismo no Cotidiano',
             orderIndex: 1,
             estimatedMinutes: 25,
-            completed: true,
+            completed: false,
             contentMarkdown: `# Os 7 Princípios do Cooperativismo no Cotidiano
 
 Bem-vindo à sua jornada de integração! Como cooperativa de crédito, nossa razão de existir não é maximizar o lucro de acionistas anônimos, mas promover a **prosperidade econômica e social de nossos associados e da comunidade local**.
@@ -279,9 +276,19 @@ export const useTrackStore = defineStore('tracks', () => {
         console.error('Erro ao ler progresso do usuário:', e);
       }
     }
-    const defaults = initialCompletionsByUser[id] || (authStore.isColaborador ? ['les-101-1'] : []);
+    const defaults = initialCompletionsByUser[id] || [];
     completedLessonIds.value = new Set(defaults);
     localStorage.setItem(key, JSON.stringify(Array.from(completedLessonIds.value)));
+  }
+
+  function resetAllProgress() {
+    completedLessonIds.value.clear();
+    // Limpa todas as chaves de progresso de trilhas
+    Object.keys(localStorage).forEach((k) => {
+      if (k.startsWith('coop_completed_lessons_')) {
+        localStorage.removeItem(k);
+      }
+    });
   }
 
   // Carrega o progresso do usuário ativo
@@ -408,6 +415,7 @@ export const useTrackStore = defineStore('tracks', () => {
     markLessonComplete,
     selectLesson,
     loadUserProgress,
+    resetAllProgress,
     fetchTracks,
   };
 });
