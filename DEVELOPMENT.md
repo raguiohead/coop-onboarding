@@ -13,14 +13,16 @@ O backend (`backend/src/main/java/com/coop/onboarding/`) adota uma estrutura ori
    - Contém entidades puras de negócio, Value Objects e regras invariantes.
    - **Regra de Ouro:** Não deve depender de bibliotecas de infraestrutura, JPA (`jakarta.persistence`), Spring Framework ou Jackson.
 2. **Application (`application/`)**:
-   - Contém Use Cases (Casos de Uso) e orquestradores de regras de negócio.
+   - Contém Use Cases (Casos de Uso) e orquestradores de regras de negócio (`AskTutorUseCase`, `GenerateQuizUseCase`, `TrackService`).
    - Comunica-se com o mundo externo através de interfaces (Portas de Saída).
 3. **Infrastructure (`infrastructure/`)**:
-   - Contém os adaptadores tecnológicos: Entidades de persistência JPA, Repositórios, integrações com Spring AI / pgvector, Spring Security e Controllers REST.
+   - Contém os adaptadores tecnológicos: Entidades de persistência JPA, Repositórios, integrações com Spring AI / pgvector, Spring Security com Keycloak JWT e Controllers REST.
+   - **Streaming Reativo:** Endpoint SSE (`SseEmitter` / `Flux<String>`) em `/api/v1/ai/tutor/stream` com cache de respostas em memória para latência sub-segundo.
 
 ### B. Regra de Governança de Banco de Dados
 - **Zero DDL Automático:** `spring.jpa.hibernate.ddl-auto` deve permanecer em `validate`.
 - Todas as alterações estruturais devem ser versionadas em scripts imutáveis do **Flyway** (`db/migration/V{numero}__{descricao}.sql`).
+- Índices vetoriais devem utilizar `HNSW` (`m=16`, `ef_construction=64`) sobre a extensão `vector` para garantir busca em tempo logarítmico.
 
 ---
 
@@ -63,10 +65,16 @@ gitGraph
 - **Testes de Integração (Testcontainers):**
   - Todo teste de persistência ou Spring Boot context DEVE executar contra instâncias reais do PostgreSQL e pgvector gerenciadas via Testcontainers.
   - É proibido o uso de bancos H2 em memória para simular o PostgreSQL/pgvector.
+- **Testes de Ponta a Ponta (E2E com Playwright):**
+  - Scripts automatizados (`test-all-roles.mjs`) validam autenticação via Keycloak e permissões de tela para os 3 perfis (`colaborador`, `gestor`, `admin`), além de interações do Tutor IA com streaming.
 
 ---
 
 ## 🤖 4. Padrões de IA & RAG Local
 
-- **Privacidade de Dados:** Inferência primária via modelos locais (Ollama / `llama3.2:3b` e `nomic-embed-text`).
+- **Privacidade de Dados:** Inferência primária 100% on-premise via Ollama (`llama3.2:1b` e `nomic-embed-text`), em total conformidade com a LGPD e políticas corporativas de dados.
 - **Metadata Filtering:** Todo vetor salvo no `vector_store` deve obrigatoriamente registrar os metadados contextuais (`trackId`, `moduleId`, `lessonId`, `documentType`) para prevenir poluição de contexto no RAG.
+- **Otimização de Latência:**
+  - `topK=2` para reduzir o tamanho do prompt e acelerar o Time-to-First-Token (TTFT).
+  - Temperatura em `0.1` para respostas determinísticas e pedagógicas.
+  - Tratamento estrito do parser SSE no frontend sem aplicar `.trim()` em tokens parciais, prevenindo a fusão indesejada de palavras.
