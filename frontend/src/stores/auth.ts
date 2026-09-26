@@ -33,6 +33,12 @@ export const mockProfiles: UserProfile[] = [
   },
 ];
 
+const profileCredentials: Record<string, { user: string; pass: string }> = {
+  '11111111-1111-1111-1111-111111111111': { user: 'colaborador', pass: 'colab123' },
+  '22222222-2222-2222-2222-222222222222': { user: 'gestor', pass: 'gestor123' },
+  '33333333-3333-3333-3333-333333333333': { user: 'admin', pass: 'admin123' },
+};
+
 export const useAuthStore = defineStore('auth', () => {
   const currentUser = ref<UserProfile>(mockProfiles[0]);
   const token = ref<string | null>(localStorage.getItem('coop_auth_token'));
@@ -40,6 +46,9 @@ export const useAuthStore = defineStore('auth', () => {
   if (token.value) {
     api.setToken(token.value);
   }
+
+  // Tenta sincronizar com o Keycloak na inicialização se não houver token ou para renovar
+  syncKeycloakToken(currentUser.value.id);
 
   const isColaborador = computed(() => currentUser.value.role === 'COLABORADOR');
   const isGestor = computed(() => currentUser.value.role === 'GESTOR');
@@ -57,10 +66,35 @@ export const useAuthStore = defineStore('auth', () => {
     }
   });
 
-  function switchProfile(profileId: string) {
+  async function syncKeycloakToken(profileId: string) {
+    const creds = profileCredentials[profileId];
+    if (!creds) return;
+    try {
+      const body = new URLSearchParams({
+        client_id: 'coop-frontend',
+        grant_type: 'password',
+        username: creds.user,
+        password: creds.pass,
+      });
+      const res = await fetch('http://localhost:8180/realms/coop-onboarding/protocol/openid-connect/token', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: body.toString(),
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setToken(data.access_token);
+      }
+    } catch (err) {
+      console.warn('Keycloak offline ou erro ao obter token:', err);
+    }
+  }
+
+  async function switchProfile(profileId: string) {
     const found = mockProfiles.find((p) => p.id === profileId);
     if (found) {
       currentUser.value = { ...found };
+      await syncKeycloakToken(profileId);
     }
   }
 
@@ -89,6 +123,7 @@ export const useAuthStore = defineStore('auth', () => {
     canGenerateQuiz,
     roleBadge,
     switchProfile,
+    syncKeycloakToken,
     setRole,
     setToken,
   };
