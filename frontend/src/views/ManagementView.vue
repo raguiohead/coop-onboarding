@@ -20,20 +20,38 @@ import {
   Shield,
   X,
   Check,
+  Eye,
+  Send,
+  BookOpen,
 } from 'lucide-vue-next';
 
-interface TeamMember {
+export interface MemberLessonStep {
+  title: string;
+  module: string;
+  duration: string;
+  completed: boolean;
+  completedAt?: string;
+}
+
+export interface TeamMember {
   id: string;
   name: string;
   email: string;
   role: 'COLABORADOR' | 'GESTOR';
   department: string;
   trackTitle: string;
+  currentModule: string;
+  currentLesson: string;
+  completedCount: number;
+  totalCount: number;
   progress: number;
   slaDaysLeft: number;
   status: 'NO_PRAZO' | 'ALERTA' | 'CONCLUIDO';
   avatar: string;
   quizzesCompleted: string;
+  quizScoreAverage: string;
+  lastActive: string;
+  lessons: MemberLessonStep[];
 }
 
 const defaultMembers: TeamMember[] = [
@@ -44,11 +62,25 @@ const defaultMembers: TeamMember[] = [
     role: 'COLABORADOR',
     department: 'Atendimento & Cooperados',
     trackTitle: 'Cultura & Governança Cooperativista',
-    progress: 85,
+    currentModule: 'Módulo 2: Governança Cooperativa',
+    currentLesson: 'Lição 2.2: O Papel dos Conselhos de Administração e Fiscal',
+    completedCount: 5,
+    totalCount: 6,
+    progress: 83,
     slaDaysLeft: 8,
     status: 'NO_PRAZO',
     avatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150&auto=format&fit=crop&q=80',
     quizzesCompleted: '2 de 3',
+    quizScoreAverage: '100%',
+    lastActive: 'Hoje às 10:45',
+    lessons: [
+      { module: 'Módulo 1: Princípios e História', title: 'Origens em Rochdale e os 7 Princípios da ACI', duration: '12 min', completed: true, completedAt: '24/09 às 09:15' },
+      { module: 'Módulo 1: Princípios e História', title: 'A Legislação Cooperativista Brasileira (Lei 5.764/71)', duration: '18 min', completed: true, completedAt: '24/09 às 11:30' },
+      { module: 'Módulo 1: Princípios e História', title: 'Cooperativas de Crédito x Bancos Comerciais', duration: '15 min', completed: true, completedAt: '25/09 às 14:00' },
+      { module: 'Módulo 2: Governança Cooperativa', title: 'Estrutura da Assembleia Geral Ordinária (AGO)', duration: '20 min', completed: true, completedAt: '25/09 às 16:45' },
+      { module: 'Módulo 2: Governança Cooperativa', title: 'Atos Cooperativos e Não Cooperativos na Prática', duration: '15 min', completed: true, completedAt: 'Hoje às 10:10' },
+      { module: 'Módulo 2: Governança Cooperativa', title: 'O Papel dos Conselhos de Administração e Fiscal', duration: '25 min', completed: false },
+    ],
   },
   {
     id: 'user-02',
@@ -57,11 +89,25 @@ const defaultMembers: TeamMember[] = [
     role: 'COLABORADOR',
     department: 'Engenharia de TI & Inovação',
     trackTitle: 'Arquitetura de Sistemas & Segurança Bancária',
-    progress: 60,
+    currentModule: 'Módulo 2: Segurança da Informação & Ciberdefesa',
+    currentLesson: 'Lição 2.1: Resolução CMN nº 4.893 e Política de Cibersegurança',
+    completedCount: 3,
+    totalCount: 6,
+    progress: 50,
     slaDaysLeft: 12,
     status: 'NO_PRAZO',
     avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80',
     quizzesCompleted: '1 de 3',
+    quizScoreAverage: '67%',
+    lastActive: 'Ontem às 17:20',
+    lessons: [
+      { module: 'Módulo 1: Fundamentos de Tecnologia Bancária', title: 'Visão Geral do Core Bancário e Barramento de Mensageria', duration: '25 min', completed: true, completedAt: '24/09 às 14:20' },
+      { module: 'Módulo 1: Fundamentos de Tecnologia Bancária', title: 'Segurança Perimetral, Criptografia e TLS 1.3', duration: '20 min', completed: true, completedAt: '25/09 às 10:15' },
+      { module: 'Módulo 1: Fundamentos de Tecnologia Bancária', title: 'Topologia em Nuvem Privada e Continuidade de Negócios', duration: '18 min', completed: true, completedAt: '25/09 às 15:30' },
+      { module: 'Módulo 2: Segurança da Informação', title: 'Resolução CMN nº 4.893 e Política de Cibersegurança', duration: '22 min', completed: false },
+      { module: 'Módulo 2: Segurança da Informação', title: 'Plano de Resposta a Incidentes de Ciberataque e DR', duration: '30 min', completed: false },
+      { module: 'Módulo 2: Segurança da Informação', title: 'Gestão de Identidade, Zero Trust e Keycloak RBAC', duration: '25 min', completed: false },
+    ],
   },
   {
     id: 'user-03',
@@ -70,11 +116,24 @@ const defaultMembers: TeamMember[] = [
     role: 'COLABORADOR',
     department: 'Crédito Imobiliário & Rural',
     trackTitle: 'Políticas de Crédito & Gestão de Riscos',
-    progress: 35,
+    currentModule: 'Módulo 1: Regulamentação de Crédito',
+    currentLesson: 'Lição 1.2: Resolução CMN 2.682/1999 e Classificação de Risco',
+    completedCount: 1,
+    totalCount: 5,
+    progress: 20,
     slaDaysLeft: 2,
     status: 'ALERTA',
     avatar: 'https://images.unsplash.com/photo-1517841905240-472988babdf9?w=150&auto=format&fit=crop&q=80',
     quizzesCompleted: '0 de 2',
+    quizScoreAverage: 'Pendente',
+    lastActive: 'Há 3 dias',
+    lessons: [
+      { module: 'Módulo 1: Regulamentação de Crédito', title: 'Fundamentos da Resolução CMN 4.557 e Riscos Integrados', duration: '15 min', completed: true, completedAt: '22/09 às 11:00' },
+      { module: 'Módulo 1: Regulamentação de Crédito', title: 'Resolução CMN 2.682/1999 e Classificação de Risco (AA a H)', duration: '25 min', completed: false },
+      { module: 'Módulo 1: Regulamentação de Crédito', title: 'Provisão para Devedores Duvidosos (PDD) e Perdas Esperadas', duration: '20 min', completed: false },
+      { module: 'Módulo 2: Modalidades Cooperativas', title: 'Operações de Crédito Rural e Pronaf', duration: '30 min', completed: false },
+      { module: 'Módulo 2: Modalidades Cooperativas', title: 'Alienação Fiduciária de Bens Imóveis e Garantias Reais', duration: '25 min', completed: false },
+    ],
   },
   {
     id: 'user-04',
@@ -83,11 +142,25 @@ const defaultMembers: TeamMember[] = [
     role: 'COLABORADOR',
     department: 'Controladoria & Contabilidade',
     trackTitle: 'Contabilidade Cooperativa & Sobras Líquidas',
+    currentModule: 'Módulo 3: Demonstrações Contábeis & Auditoria',
+    currentLesson: 'Trilha 100% Concluída — Certificado Emitido',
+    completedCount: 6,
+    totalCount: 6,
     progress: 100,
     slaDaysLeft: 0,
     status: 'CONCLUIDO',
     avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150&auto=format&fit=crop&q=80',
     quizzesCompleted: '3 de 3',
+    quizScoreAverage: '96%',
+    lastActive: 'Concluído em 24/09',
+    lessons: [
+      { module: 'Módulo 1: COSIF e NBC T 10.8', title: 'Estrutura do Plano de Contas das Instituições Financeiras', duration: '20 min', completed: true, completedAt: '23/09 às 09:00' },
+      { module: 'Módulo 1: COSIF e NBC T 10.8', title: 'Contabilização do Capital Social e Quotas-Partes', duration: '15 min', completed: true, completedAt: '23/09 às 11:15' },
+      { module: 'Módulo 2: Sobras e Perdas', title: 'Cálculo e Destinação das Sobras Líquidas do Exercício', duration: '25 min', completed: true, completedAt: '23/09 às 15:30' },
+      { module: 'Módulo 2: Sobras e Perdas', title: 'Constituição do FATES e Reserva Legal Obrigatória', duration: '18 min', completed: true, completedAt: '24/09 às 10:20' },
+      { module: 'Módulo 3: Demonstrações', title: 'Balanço Patrimonial Cooperativo e DVA', duration: '22 min', completed: true, completedAt: '24/09 às 14:00' },
+      { module: 'Módulo 3: Demonstrações', title: 'Prestação de Contas aos Associados e Auditoria Independente', duration: '20 min', completed: true, completedAt: '24/09 às 16:30' },
+    ],
   },
   {
     id: 'user-05',
@@ -96,11 +169,18 @@ const defaultMembers: TeamMember[] = [
     role: 'GESTOR',
     department: 'Gente & Gestão (RH)',
     trackTitle: 'Liderança & Governança Cooperativa',
+    currentModule: 'Supervisão Ativa da Turma',
+    currentLesson: 'Gestor Responsável pela Turma de Integração',
+    completedCount: 0,
+    totalCount: 0,
     progress: 100,
     slaDaysLeft: 0,
     status: 'CONCLUIDO',
     avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&auto=format&fit=crop&q=80',
     quizzesCompleted: 'Supervisão Ativa',
+    quizScoreAverage: '100% (Gabarito)',
+    lastActive: 'Ativo agora',
+    lessons: [],
   },
   {
     id: 'user-06',
@@ -109,11 +189,18 @@ const defaultMembers: TeamMember[] = [
     role: 'GESTOR',
     department: 'Gerência de Crédito & Riscos',
     trackTitle: 'Supervisão de Crédito e Conformidade BACEN',
+    currentModule: 'Supervisão Ativa de Crédito',
+    currentLesson: 'Supervisão Regulatória e Criação de Quizzes IA',
+    completedCount: 0,
+    totalCount: 0,
     progress: 100,
     slaDaysLeft: 0,
     status: 'CONCLUIDO',
     avatar: 'https://images.unsplash.com/photo-1580489944761-15a19d654956?w=150&auto=format&fit=crop&q=80',
     quizzesCompleted: 'Supervisão Ativa',
+    quizScoreAverage: '100% (Gabarito)',
+    lastActive: 'Hoje às 08:30',
+    lessons: [],
   },
 ];
 
@@ -227,6 +314,16 @@ function handleSaveMember() {
       role: memberForm.value.role,
       department: memberForm.value.department,
       trackTitle: memberForm.value.trackTitle,
+      currentModule: 'Módulo 1: Introdução Institucional',
+      currentLesson: 'Lição 1.1: Boas-vindas e Visão Geral',
+      completedCount: 0,
+      totalCount: 5,
+      quizScoreAverage: '0%',
+      lastActive: 'Cadastrado agora',
+      lessons: [
+        { module: 'Módulo 1: Introdução Institucional', title: 'Boas-vindas e Princípios Cooperativistas', duration: '15 min', completed: false },
+        { module: 'Módulo 1: Introdução Institucional', title: 'Regulamentação e Governança Básica', duration: '20 min', completed: false },
+      ],
       progress: memberForm.value.progress,
       slaDaysLeft: memberForm.value.slaDaysLeft,
       status: memberForm.value.status,
@@ -259,6 +356,24 @@ function handleDeleteMember(memberId: string) {
     saveTeamMembers();
     authStore.deleteUser(memberId);
   }
+}
+
+// Modal de Raio-X de Aprendizagem (Gestor e Admin)
+const isRaioXModalOpen = ref(false);
+const selectedRaioXMember = ref<TeamMember | null>(null);
+const reminderFeedback = ref<string | null>(null);
+
+function openRaioXModal(member: TeamMember) {
+  selectedRaioXMember.value = member;
+  reminderFeedback.value = null;
+  isRaioXModalOpen.value = true;
+}
+
+function sendSupportReminder(member: TeamMember) {
+  reminderFeedback.value = `Lembrete pedagógico enviado com sucesso para ${member.name} (${member.email})!`;
+  setTimeout(() => {
+    reminderFeedback.value = null;
+  }, 4000);
 }
 </script>
 
@@ -409,11 +524,12 @@ function handleDeleteMember(memberId: string) {
             <tr class="bg-slate-50/80 text-[11px] font-bold uppercase tracking-wider text-slate-400 border-b border-slate-100">
               <th class="px-6 py-3.5">Profissional</th>
               <th class="px-6 py-3.5">Papel</th>
-              <th class="px-6 py-3.5">Trilha Atribuída</th>
+              <th class="px-6 py-3.5">Trilha Atribuída & Onde Está</th>
               <th class="px-6 py-3.5">Progresso</th>
               <th class="px-6 py-3.5">SLA Restante</th>
               <th class="px-6 py-3.5">Quizzes</th>
               <th class="px-6 py-3.5">Status</th>
+              <th class="px-6 py-3.5 text-center">Raio-X</th>
               <th v-if="authStore.isAdmin" class="px-6 py-3.5 text-right">Ações Admin</th>
             </tr>
           </thead>
@@ -436,8 +552,29 @@ function handleDeleteMember(memberId: string) {
                   {{ member.role }}
                 </span>
               </td>
-              <td class="px-6 py-4 text-slate-700 font-medium">
-                {{ member.trackTitle }}
+              <td class="px-6 py-4">
+                <p class="text-slate-800 font-bold leading-tight">{{ member.trackTitle }}</p>
+                <div v-if="member.role === 'COLABORADOR'" class="mt-1.5 flex items-center space-x-1.5">
+                  <span
+                    class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-lg text-[10px] font-semibold border max-w-[280px]"
+                    :class="[
+                      member.status === 'CONCLUIDO'
+                        ? 'bg-teal-50 text-teal-800 border-teal-200'
+                        : member.status === 'ALERTA'
+                        ? 'bg-rose-50 text-rose-800 border-rose-200'
+                        : 'bg-indigo-50/70 text-indigo-900 border-indigo-200/60'
+                    ]"
+                  >
+                    <span
+                      class="w-1.5 h-1.5 rounded-full shrink-0"
+                      :class="member.status === 'CONCLUIDO' ? 'bg-teal-500' : member.status === 'ALERTA' ? 'bg-rose-500 animate-pulse' : 'bg-indigo-500 animate-pulse'"
+                    ></span>
+                    <span class="truncate" :title="member.currentLesson">
+                      {{ member.currentLesson }}
+                    </span>
+                  </span>
+                </div>
+                <p v-else class="text-[11px] text-slate-400 mt-0.5">Visão de Governança & Supervisão</p>
               </td>
               <td class="px-6 py-4 w-44">
                 <div v-if="member.role === 'COLABORADOR'" class="flex items-center space-x-2">
@@ -480,6 +617,20 @@ function handleDeleteMember(memberId: string) {
                 >
                   {{ member.status === 'CONCLUIDO' ? 'Finalizado' : member.status === 'ALERTA' ? 'SLA em Risco' : 'Em Andamento' }}
                 </span>
+              </td>
+
+              <!-- Raio-X Detalhado -->
+              <td class="px-6 py-4 text-center">
+                <button
+                  v-if="member.role === 'COLABORADOR'"
+                  @click="openRaioXModal(member)"
+                  class="inline-flex items-center space-x-1.5 px-3 py-1.5 rounded-xl text-xs font-bold text-indigo-700 bg-indigo-50 hover:bg-indigo-100 border border-indigo-200/80 transition-all cursor-pointer shadow-2xs whitespace-nowrap"
+                  title="Consultar exatamente quais lições e módulos este colaborador concluiu"
+                >
+                  <Eye class="w-3.5 h-3.5" />
+                  <span>Raio-X</span>
+                </button>
+                <span v-else class="text-[10px] text-slate-400 font-semibold uppercase">Gestão</span>
               </td>
 
               <!-- Coluna de Ações Admin -->
@@ -647,6 +798,208 @@ function handleDeleteMember(memberId: string) {
             </button>
           </div>
         </form>
+      </div>
+    </div>
+
+    <!-- Modal Raio-X de Aprendizagem (Gestor & Admin) -->
+    <div
+      v-if="isRaioXModalOpen && selectedRaioXMember"
+      class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs animate-fade-in"
+    >
+      <div class="bg-white rounded-3xl shadow-2xl border border-slate-200 max-w-2xl w-full overflow-hidden flex flex-col max-h-[90vh]">
+        <!-- Cabeçalho do Modal -->
+        <div class="px-6 py-5 border-b border-slate-100 flex items-center justify-between bg-slate-50/70">
+          <div class="flex items-center space-x-3.5">
+            <img
+              :src="selectedRaioXMember.avatar"
+              :alt="selectedRaioXMember.name"
+              class="w-12 h-12 rounded-2xl object-cover border-2 border-indigo-400 shadow-xs shrink-0"
+            />
+            <div>
+              <div class="flex items-center space-x-2">
+                <h3 class="text-base font-extrabold text-slate-900">{{ selectedRaioXMember.name }}</h3>
+                <span
+                  :class="[
+                    'px-2 py-0.5 rounded text-[10px] font-bold uppercase border',
+                    selectedRaioXMember.status === 'CONCLUIDO'
+                      ? 'bg-teal-50 text-teal-700 border-teal-200'
+                      : selectedRaioXMember.status === 'ALERTA'
+                      ? 'bg-rose-50 text-rose-700 border-rose-200'
+                      : 'bg-indigo-50 text-indigo-700 border-indigo-200'
+                  ]"
+                >
+                  {{ selectedRaioXMember.status === 'CONCLUIDO' ? 'Finalizado' : selectedRaioXMember.status === 'ALERTA' ? 'SLA em Risco' : 'No Prazo' }}
+                </span>
+              </div>
+              <p class="text-xs text-slate-500 mt-0.5">
+                {{ selectedRaioXMember.email }} · {{ selectedRaioXMember.department }}
+              </p>
+            </div>
+          </div>
+
+          <button
+            @click="isRaioXModalOpen = false"
+            class="text-slate-400 hover:text-slate-600 p-2 rounded-xl hover:bg-slate-200/50 transition-colors cursor-pointer"
+          >
+            <X class="w-5 h-5" />
+          </button>
+        </div>
+
+        <!-- Feedback de Lembrete Enviado -->
+        <div v-if="reminderFeedback" class="bg-emerald-50 border-b border-emerald-200 px-6 py-2.5 flex items-center justify-between text-xs text-emerald-800 font-semibold animate-fade-in">
+          <span class="flex items-center gap-1.5">
+            <CheckCircle2 class="w-4 h-4 text-emerald-600" />
+            {{ reminderFeedback }}
+          </span>
+          <button @click="reminderFeedback = null" class="text-emerald-700 hover:text-emerald-950 font-bold">×</button>
+        </div>
+
+        <!-- Conteúdo Rolável -->
+        <div class="p-6 overflow-y-auto space-y-6 text-xs">
+          <!-- Banner Destaque de Posição Atual -->
+          <div class="p-4 rounded-2xl bg-gradient-to-r from-indigo-900 via-brand-900 to-indigo-950 text-white shadow-sm space-y-2">
+            <div class="flex items-center justify-between">
+              <span class="text-[10px] font-bold uppercase tracking-wider text-indigo-200 bg-white/10 px-2 py-0.5 rounded">
+                📍 Posicionamento Atual na Trilha
+              </span>
+              <span class="text-[11px] text-slate-300">
+                Última atividade: <strong>{{ selectedRaioXMember.lastActive }}</strong>
+              </span>
+            </div>
+            <p class="text-sm sm:text-base font-bold text-white flex items-center gap-2">
+              <span class="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse shrink-0"></span>
+              <span>{{ selectedRaioXMember.currentLesson }}</span>
+            </p>
+            <p class="text-[11px] text-slate-300">
+              Trilha: <strong class="text-white">{{ selectedRaioXMember.trackTitle }}</strong>
+              <span class="mx-1.5">·</span>
+              {{ selectedRaioXMember.currentModule }}
+            </p>
+          </div>
+
+          <!-- Cards de Métricas Rápidas -->
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            <div class="p-3.5 rounded-2xl bg-slate-50 border border-slate-200/80">
+              <p class="text-[10px] font-bold uppercase tracking-wide text-slate-400">Progresso Geral</p>
+              <div class="flex items-baseline space-x-2 mt-1">
+                <span class="text-2xl font-black text-slate-900">{{ selectedRaioXMember.progress }}%</span>
+                <span class="text-[11px] text-slate-500 font-medium">({{ selectedRaioXMember.completedCount }}/{{ selectedRaioXMember.totalCount }} lições)</span>
+              </div>
+              <div class="w-full bg-slate-200 h-1.5 rounded-full overflow-hidden mt-2">
+                <div class="bg-brand-600 h-full rounded-full" :style="{ width: `${selectedRaioXMember.progress}%` }"></div>
+              </div>
+            </div>
+
+            <div class="p-3.5 rounded-2xl bg-slate-50 border border-slate-200/80">
+              <p class="text-[10px] font-bold uppercase tracking-wide text-slate-400">Prazo SLA</p>
+              <div class="flex items-baseline space-x-2 mt-1">
+                <span class="text-2xl font-black text-slate-900">{{ selectedRaioXMember.slaDaysLeft }}</span>
+                <span class="text-[11px] text-slate-500 font-medium">dias restantes</span>
+              </div>
+              <p class="text-[11px] text-slate-500 mt-2">
+                Status: <strong :class="selectedRaioXMember.status === 'ALERTA' ? 'text-rose-600' : 'text-emerald-600'">{{ selectedRaioXMember.status }}</strong>
+              </p>
+            </div>
+
+            <div class="p-3.5 rounded-2xl bg-slate-50 border border-slate-200/80">
+              <p class="text-[10px] font-bold uppercase tracking-wide text-slate-400">Aproveitamento Quizzes</p>
+              <div class="flex items-baseline space-x-2 mt-1">
+                <span class="text-2xl font-black text-indigo-700">{{ selectedRaioXMember.quizScoreAverage }}</span>
+                <span class="text-[11px] text-slate-500 font-medium">média</span>
+              </div>
+              <p class="text-[11px] text-slate-500 mt-2">
+                {{ selectedRaioXMember.quizzesCompleted }} finalizados
+              </p>
+            </div>
+          </div>
+
+          <!-- Grade Curricular & Status de Cada Lição -->
+          <div class="space-y-3">
+            <div class="flex items-center justify-between">
+              <h4 class="text-xs font-bold uppercase tracking-wider text-slate-700 flex items-center gap-1.5">
+                <BookOpen class="w-4 h-4 text-brand-600" />
+                <span>Roteiro de Lições & Atividades Normativas</span>
+              </h4>
+              <span class="text-[11px] text-slate-400">Auditoria Granular</span>
+            </div>
+
+            <div class="space-y-2">
+              <div
+                v-for="(step, idx) in selectedRaioXMember.lessons"
+                :key="idx"
+                class="p-3 rounded-2xl border transition-colors flex items-center justify-between gap-3"
+                :class="[
+                  step.completed
+                    ? 'bg-teal-50/50 border-teal-200/80 text-teal-950'
+                    : step.title === selectedRaioXMember.currentLesson
+                    ? 'bg-indigo-50 border-indigo-300 text-indigo-950 shadow-2xs'
+                    : 'bg-white border-slate-200 text-slate-600'
+                ]"
+              >
+                <div class="flex items-center space-x-3 min-w-0">
+                  <div
+                    class="w-6 h-6 rounded-full flex items-center justify-center shrink-0 text-xs font-bold"
+                    :class="[
+                      step.completed
+                        ? 'bg-teal-600 text-white'
+                        : step.title === selectedRaioXMember.currentLesson
+                        ? 'bg-indigo-600 text-white ring-2 ring-indigo-200 animate-pulse'
+                        : 'bg-slate-100 text-slate-400 border border-slate-200'
+                    ]"
+                  >
+                    <Check v-if="step.completed" class="w-3.5 h-3.5" />
+                    <span v-else>{{ idx + 1 }}</span>
+                  </div>
+                  <div class="min-w-0">
+                    <p class="font-bold text-xs truncate">{{ step.title }}</p>
+                    <p class="text-[10px] text-slate-400">{{ step.module }} · {{ step.duration }}</p>
+                  </div>
+                </div>
+
+                <div class="shrink-0 text-right">
+                  <span
+                    v-if="step.completed"
+                    class="inline-block px-2 py-0.5 rounded text-[10px] font-semibold bg-teal-100 text-teal-800"
+                  >
+                    ✓ {{ step.completedAt || 'Concluído' }}
+                  </span>
+                  <span
+                    v-else-if="step.title === selectedRaioXMember.currentLesson"
+                    class="inline-block px-2 py-0.5 rounded text-[10px] font-bold bg-indigo-100 text-indigo-800"
+                  >
+                    Em Andamento
+                  </span>
+                  <span
+                    v-else
+                    class="inline-block px-2 py-0.5 rounded text-[10px] font-medium text-slate-400"
+                  >
+                    Pendente
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Rodapé de Ações do Gestor -->
+        <div class="px-6 py-4 border-t border-slate-100 bg-slate-50 flex items-center justify-between">
+          <button
+            type="button"
+            @click="sendSupportReminder(selectedRaioXMember)"
+            class="inline-flex items-center space-x-2 px-4 py-2 rounded-xl text-xs font-bold text-indigo-700 bg-indigo-100/70 hover:bg-indigo-200/80 transition-colors cursor-pointer"
+          >
+            <Send class="w-3.5 h-3.5" />
+            <span>Enviar Notificação de Apoio</span>
+          </button>
+
+          <button
+            type="button"
+            @click="isRaioXModalOpen = false"
+            class="px-5 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs transition-colors cursor-pointer"
+          >
+            Fechar Raio-X
+          </button>
+        </div>
       </div>
     </div>
 

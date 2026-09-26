@@ -50,7 +50,7 @@ async function quickLogin(userKey: string) {
 </script>
 
 <template>
-  <div class="min-h-[85vh] flex flex-col justify-center py-12 sm:px-6 lg:px-8">
+  <div class="min-h-screen flex flex-col justify-center py-12 px-4 sm:px-6 lg:px-8 bg-gradient-to-b from-slate-50 via-slate-100 to-slate-200/50">
     <div class="sm:mx-auto sm:w-full sm:max-w-md text-center">
       <!-- Brand Logo -->
       <div class="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-gradient-to-br from-brand-600 to-brand-800 text-white shadow-lg shadow-brand-500/20 mb-4 ring-4 ring-brand-100">

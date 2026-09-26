@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref } from 'vue';
+import { ref, computed } from 'vue';
 import { useRouter } from 'vue-router';
 import { useAiTutorStore } from '@/stores/aiTutor';
 import {
@@ -33,30 +33,80 @@ const submittedTicketNumber = ref<string | null>(null);
 
 // FAQ State
 const searchQuery = ref('');
+const selectedFaqCategory = ref('todas');
 const openFaqIndex = ref<number | null>(0);
 
-const faqList = [
+interface FaqItem {
+  category: 'trilhas' | 'gestao' | 'quizzes' | 'ia' | 'certificados';
+  categoryLabel: string;
+  question: string;
+  answer: string;
+}
+
+const faqList: FaqItem[] = [
   {
-    question: 'Qual é o prazo limite (SLA) para conclusão da minha trilha de integração?',
-    answer: 'Cada colaborador possui um SLA padrão de 14 dias corridos a partir da data de admissão. O acompanhamento em tempo real pode ser visualizado no Painel Geral do Dashboard.',
+    category: 'trilhas',
+    categoryLabel: 'Jornada & Metodologia',
+    question: 'Como funciona a jornada de onboarding e qual a metodologia adotada?',
+    answer: 'A plataforma integra o Método PARA institucional (Projetos, Áreas, Recursos e Arquivos) com o modelo de aprendizado por micro-lições. Cada colaborador ingressante recebe uma trilha de formação segmentada em módulos conceituais, leituras normativas do Sistema Cooperativo e avaliações práticas de fixação.',
   },
   {
+    category: 'gestao',
+    categoryLabel: 'Gestão da Turma',
+    question: 'Como o gestor acompanha em qual lição e módulo cada colaborador está?',
+    answer: 'No Painel de Gestão (/gestao), o gestor possui o "Raio-X de Aprendizagem". Em tempo real, a tabela exibe a etapa exata em que o colaborador parou (por exemplo: "Módulo 2: Lição 2.2"). Clicando no botão "Raio-X", o gestor abre o histórico completo com datas de conclusão, tempo dedicado, notas de simulados e pode disparar lembretes pedagógicos de apoio.',
+  },
+  {
+    category: 'gestao',
+    categoryLabel: 'Papel do Gestor',
+    question: 'Por que o gestor não precisa completar as lições ou prestar os quizzes?',
+    answer: 'Os gestores exercem papel de liderança, monitoramento pedagógico e supervisão regulatória. Por isso, as lições aparecem para eles em Modo de Consulta da Grade e os quizzes funcionam como "Gabarito Comentado", permitindo auditar as perguntas, respostas corretas e fundamentações BACEN sem gerar notas avaliativas no histórico.',
+  },
+  {
+    category: 'quizzes',
+    categoryLabel: 'Quizzes & Avaliações',
     question: 'Como funciona a avaliação de desempenho nos Quizzes da plataforma?',
-    answer: 'Ao final de cada módulo você responderá um quiz de fixação. É necessário atingir ao menos 70% de aproveitamento para receber o selo de certificação do módulo. Caso necessário, é possível refazer o simulado a qualquer momento.',
+    answer: 'Ao final de cada módulo você responderá a um quiz de múltipla escolha. A nota de aprovação institucional é de 70%. O sistema registra a maior nota obtida e você pode refazer o simulado sempre que desejar para consolidar o conhecimento.',
   },
   {
-    question: 'O Tutor Virtual de IA tem acesso aos manuais normativos e produtos da cooperativa?',
-    answer: 'Sim! Nosso Tutor IA utiliza arquitetura RAG (Retrieval-Augmented Generation) indexando a legislação cooperativista brasileira, normativos do BACEN e a política de crédito da instituição.',
+    category: 'ia',
+    categoryLabel: 'Tutor IA & RAG Local',
+    question: 'Como o Tutor IA responde às dúvidas dos colaboradores utilizando normativos locais?',
+    answer: 'Nosso Tutor Virtual opera com arquitetura RAG (Retrieval-Augmented Generation) 100% soberana e local. Quando você faz uma pergunta, o sistema realiza uma busca semântica em alta velocidade no banco vetorial pgvector, consultando normativos da Lei 5.764/71, resoluções do CMN/BACEN e manuais internos da cooperativa, gerando respostas fundamentadas e com citação das fontes normativas.',
   },
   {
-    question: 'Não consigo acessar algum sistema corporativo. Quem devo procurar?',
-    answer: 'Para credenciais de rede, e-mail corporativo ou permissões de sistemas de crédito, abra um chamado diretamente com o Service Desk de TI através desta página ou pelo ramal interno 4001.',
+    category: 'certificados',
+    categoryLabel: 'Prazos & SLA',
+    question: 'Qual é o prazo regulatório (SLA) para conclusão e o que acontece se expirar?',
+    answer: 'O SLA padrão é de 14 dias corridos a partir da data de admissão. Caso o prazo se aproxime do fim (menos de 3 dias), a plataforma emite um alerta visual prioritário. O gestor imediato pode conceder prorrogação ou entrar em contato através do canal de apoio.',
   },
   {
-    question: 'Como solicito a prorrogação do prazo de uma trilha em caso de imprevisto?',
-    answer: 'Seu gestor imediato pode conceder prorrogação de SLA diretamente pelo Painel de Gestão da Turma (/gestao). Converse com ele ou acione o time de Gente & Gestão.',
+    category: 'certificados',
+    categoryLabel: 'Certificação Digital',
+    question: 'Como e quando o meu Certificado de Formação Cooperativista é emitido?',
+    answer: 'O Certificado Oficial de Qualificação Cooperativa é gerado automaticamente na aba "Meu Perfil" assim que todas as lições obrigatórias forem concluídas com aproveitamento superior a 70% nos quizzes. O certificado conta com chave hash criptográfica SHA-256 e validação para fins curriculares internos.',
+  },
+  {
+    category: 'gestao',
+    categoryLabel: 'Administração & RBAC',
+    question: 'Qual a diferença de poder entre o Administrador, o Gestor e o Colaborador?',
+    answer: 'O Colaborador foca em sua trilha individual de aprendizado. O Gestor supervisiona sua turma, acompanha o Raio-X dos alunos e gera novos quizzes via IA. Já o Administrador tem governança plena: cadastra, edita, exclui ou promove colaboradores e gestores, além de auditar as conexões Keycloak e a base vetorial.',
   },
 ];
+
+const filteredFaqList = computed(() => {
+  return faqList.filter((item) => {
+    const matchesCategory =
+      selectedFaqCategory.value === 'todas' || item.category === selectedFaqCategory.value;
+    const query = searchQuery.value.toLowerCase().trim();
+    const matchesQuery =
+      !query ||
+      item.question.toLowerCase().includes(query) ||
+      item.answer.toLowerCase().includes(query) ||
+      item.categoryLabel.toLowerCase().includes(query);
+    return matchesCategory && matchesQuery;
+  });
+});
 
 function toggleFaq(index: number) {
   openFaqIndex.value = openFaqIndex.value === index ? null : index;
@@ -158,38 +208,137 @@ function handleSubmitTicket() {
     </div>
 
     <!-- 2. Perguntas Frequentes (FAQ) -->
-    <section class="bg-white rounded-3xl p-8 border border-slate-200/80 shadow-xs space-y-6">
+    <section class="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200/80 shadow-xs space-y-6">
       <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h2 class="text-lg font-bold text-slate-900 flex items-center space-x-2">
             <HelpCircle class="w-5 h-5 text-brand-600" />
-            <span>Perguntas Frequentes (FAQ)</span>
+            <span>Perguntas Frequentes & Como Funciona a Plataforma</span>
           </h2>
-          <p class="text-xs text-slate-500 mt-1">Respostas rápidas para as dúvidas mais comuns dos novos colaboradores.</p>
+          <p class="text-xs text-slate-500 mt-1">
+            Respostas detalhadas sobre a metodologia pedagógica, papéis de Colaborador e Gestor, quizzes e IA local.
+          </p>
+        </div>
+
+        <!-- Barra de Busca Rápida -->
+        <div class="relative w-full sm:w-72">
+          <Search class="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+          <input
+            v-model="searchQuery"
+            type="text"
+            placeholder="Buscar dúvida ou termo..."
+            class="w-full pl-9 pr-3.5 py-2 rounded-xl border border-slate-200 text-xs text-slate-800 placeholder:text-slate-400 focus:ring-2 focus:ring-brand-500 focus:outline-hidden"
+          />
         </div>
       </div>
 
-      <div class="space-y-3 pt-2">
+      <!-- Abas de Categoria de Dúvidas -->
+      <div class="flex flex-wrap gap-1.5 pt-1 border-b border-slate-100 pb-3">
+        <button
+          @click="selectedFaqCategory = 'todas'"
+          :class="[
+            'px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer',
+            selectedFaqCategory === 'todas'
+              ? 'bg-slate-900 text-white shadow-2xs'
+              : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+          ]"
+        >
+          Todas ({{ faqList.length }})
+        </button>
+        <button
+          @click="selectedFaqCategory = 'trilhas'"
+          :class="[
+            'px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer',
+            selectedFaqCategory === 'trilhas'
+              ? 'bg-brand-600 text-white shadow-2xs'
+              : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+          ]"
+        >
+          Trilhas & Jornada
+        </button>
+        <button
+          @click="selectedFaqCategory = 'gestao'"
+          :class="[
+            'px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer',
+            selectedFaqCategory === 'gestao'
+              ? 'bg-indigo-600 text-white shadow-2xs'
+              : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+          ]"
+        >
+          Gestores & Raio-X
+        </button>
+        <button
+          @click="selectedFaqCategory = 'quizzes'"
+          :class="[
+            'px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer',
+            selectedFaqCategory === 'quizzes'
+              ? 'bg-amber-600 text-white shadow-2xs'
+              : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+          ]"
+        >
+          Quizzes & Notas
+        </button>
+        <button
+          @click="selectedFaqCategory = 'ia'"
+          :class="[
+            'px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer',
+            selectedFaqCategory === 'ia'
+              ? 'bg-purple-600 text-white shadow-2xs'
+              : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+          ]"
+        >
+          Tutor IA & Normas
+        </button>
+        <button
+          @click="selectedFaqCategory = 'certificados'"
+          :class="[
+            'px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer',
+            selectedFaqCategory === 'certificados'
+              ? 'bg-emerald-600 text-white shadow-2xs'
+              : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+          ]"
+        >
+          Prazos & Certificados
+        </button>
+      </div>
+
+      <!-- Lista de Perguntas (Acordeão) -->
+      <div v-if="filteredFaqList.length > 0" class="space-y-3 pt-1">
         <div
-          v-for="(item, idx) in faqList"
+          v-for="(item, idx) in filteredFaqList"
           :key="idx"
           class="rounded-2xl border border-slate-200/80 overflow-hidden transition-colors"
         >
           <button
             @click="toggleFaq(idx)"
-            class="w-full px-5 py-4 text-left flex items-center justify-between text-xs sm:text-sm font-bold text-slate-800 hover:bg-slate-50 transition-colors cursor-pointer"
+            class="w-full px-5 py-4 text-left flex items-start sm:items-center justify-between gap-3 text-xs sm:text-sm font-bold text-slate-800 hover:bg-slate-50 transition-colors cursor-pointer"
           >
-            <span>{{ item.question }}</span>
-            <ChevronUp v-if="openFaqIndex === idx" class="w-4 h-4 text-slate-400 shrink-0" />
-            <ChevronDown v-else class="w-4 h-4 text-slate-400 shrink-0" />
+            <div class="flex flex-col sm:flex-row sm:items-center gap-2">
+              <span class="inline-block px-2 py-0.5 rounded text-[10px] font-bold uppercase bg-slate-100 text-slate-600 shrink-0">
+                {{ item.categoryLabel }}
+              </span>
+              <span class="text-slate-900">{{ item.question }}</span>
+            </div>
+            <ChevronUp v-if="openFaqIndex === idx" class="w-4 h-4 text-slate-400 shrink-0 mt-0.5 sm:mt-0" />
+            <ChevronDown v-else class="w-4 h-4 text-slate-400 shrink-0 mt-0.5 sm:mt-0" />
           </button>
           <div
             v-if="openFaqIndex === idx"
-            class="px-5 pb-4 text-xs sm:text-sm text-slate-600 leading-relaxed bg-slate-50/50 border-t border-slate-100"
+            class="px-5 pb-5 text-xs sm:text-sm text-slate-600 leading-relaxed bg-slate-50/50 border-t border-slate-100 animate-fade-in"
           >
             {{ item.answer }}
           </div>
         </div>
+      </div>
+
+      <div v-else class="p-8 text-center bg-slate-50 rounded-2xl border border-dashed border-slate-200 text-slate-500 text-xs">
+        <p>Nenhuma pergunta encontrada para "<strong>{{ searchQuery }}</strong>".</p>
+        <button
+          @click="searchQuery = ''; selectedFaqCategory = 'todas'"
+          class="mt-2 text-brand-600 hover:underline font-bold"
+        >
+          Limpar filtros de busca
+        </button>
       </div>
     </section>
 

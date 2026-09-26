@@ -1,19 +1,24 @@
 <script setup lang="ts">
+import { computed } from 'vue';
+import { useRoute } from 'vue-router';
 import AppHeader from '@/components/layout/AppHeader.vue';
 import AiTutorDrawer from '@/components/ai/AiTutorDrawer.vue';
 import { useAiTutorStore } from '@/stores/aiTutor';
 import { Sparkles, HelpCircle } from 'lucide-vue-next';
 
+const route = useRoute();
 const aiTutorStore = useAiTutorStore();
+
+const isLoginPage = computed(() => route.path === '/login');
 </script>
 
 <template>
   <div class="min-h-screen bg-slate-50 flex flex-col font-sans selection:bg-brand-500 selection:text-white">
-    <!-- Header -->
-    <AppHeader />
+    <!-- Header (Oculto na tela de login) -->
+    <AppHeader v-if="!isLoginPage" />
 
     <!-- Main Content Container -->
-    <div class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 pt-8">
+    <div :class="['flex-1 w-full mx-auto', isLoginPage ? 'p-0 max-w-none' : 'max-w-7xl px-4 sm:px-6 lg:px-8 pt-8']">
       <router-view v-slot="{ Component }">
         <transition name="fade" mode="out-in">
           <component :is="Component" />
@@ -21,8 +26,8 @@ const aiTutorStore = useAiTutorStore();
       </router-view>
     </div>
 
-    <!-- Corporate Footer -->
-    <footer class="mt-auto border-t border-slate-200/80 bg-white py-6 text-xs text-slate-500">
+    <!-- Corporate Footer (Oculto na tela de login) -->
+    <footer v-if="!isLoginPage" class="mt-auto border-t border-slate-200/80 bg-white py-6 text-xs text-slate-500">
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-4">
         <div class="flex items-center space-x-2.5">
           <div class="w-6 h-6 rounded-lg bg-gradient-to-br from-brand-600 to-brand-800 flex items-center justify-center text-white shadow-xs shrink-0">
@@ -42,8 +47,8 @@ const aiTutorStore = useAiTutorStore();
       </div>
     </footer>
 
-    <!-- Floating AI Tutor Trigger (Fixed Bottom-Right) -->
-    <div class="fixed bottom-6 right-6 z-30">
+    <!-- Floating AI Tutor Trigger (Fixed Bottom-Right, Oculto no login) -->
+    <div v-if="!isLoginPage" class="fixed bottom-6 right-6 z-30">
       <button
         @click="aiTutorStore.openDrawer"
         class="group relative flex items-center space-x-2.5 px-4 py-3 rounded-2xl bg-gradient-to-r from-ai-500 to-indigo-600 hover:from-ai-600 hover:to-indigo-700 text-white shadow-xl shadow-ai-500/35 hover:scale-105 active:scale-95 transition-all duration-300 border border-white/20"
@@ -59,7 +64,7 @@ const aiTutorStore = useAiTutorStore();
     </div>
 
     <!-- AI Tutor Drawer -->
-    <AiTutorDrawer />
+    <AiTutorDrawer v-if="!isLoginPage" />
   </div>
 </template>
 

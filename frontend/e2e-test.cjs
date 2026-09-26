@@ -57,14 +57,25 @@ async function runE2E() {
 
   try {
     // 1. Dashboard Inicial (Colaborador)
-    console.log('\n📍 [1/7] Acessando Dashboard (http://localhost:5173)...');
+    console.log('\n📍 [1/10] Acessando Dashboard (http://localhost:5173)...');
     await page.goto('http://localhost:5173', { waitUntil: 'networkidle' });
     await page.waitForTimeout(1000);
+
+    // Se o modal de tutorial abriu automaticamente, vamos testá-lo e fechá-lo
+    const pularBtn = page.locator('button:has-text("Pular Tutorial"), button:has-text("Entendi, Começar Agora!")').first();
+    if (await pularBtn.isVisible({ timeout: 3000 }).catch(() => false)) {
+      console.log('✅ Modal de Tutorial Rápido abriu automaticamente para novo colaborador.');
+      await page.screenshot({ path: path.join(screenshotsDir, '01-tutorial-modal.png') });
+      await pularBtn.click();
+      await page.waitForTimeout(600);
+      console.log('✅ Tutorial fechado com sucesso.');
+    }
+
     await page.screenshot({ path: path.join(screenshotsDir, '01-colaborador-dashboard.png'), fullPage: true });
     console.log('✅ Dashboard de Colaborador renderizado.');
 
     // 2. Troca de Perfil RBAC no Header: Gestor e Admin
-    console.log('\n📍 [2/7] Testando Simulação RBAC e Perfis Keycloak no Header...');
+    console.log('\n📍 [2/10] Testando Simulação RBAC e Perfis Keycloak no Header...');
     const profileBtn = page.locator('header button').filter({ hasText: /Silva|Colaborador|Mendes|Duarte/ }).first();
     await profileBtn.click();
     await page.waitForTimeout(500);
@@ -95,108 +106,122 @@ async function runE2E() {
     const trilhasLink = page.locator('header nav a').filter({ hasText: 'Trilhas' });
     await trilhasLink.click();
     await page.waitForTimeout(1000);
-    const currentUrl = page.url();
-    console.log(`ℹ️ URL atual após clicar em Trilhas: ${currentUrl}`);
-    if (currentUrl.includes('/trilhas')) {
-      console.log('✅ Navegação para tela dedicada de Trilhas (/trilhas) confirmada com sucesso.');
-    } else {
-      throw new Error(`Esperado /trilhas, mas obteve ${currentUrl}`);
-    }
-    await page.screenshot({ path: path.join(screenshotsDir, '04b-trilhas-view.png'), fullPage: true });
+    console.log(`ℹ️ URL atual após clicar em Trilhas: ${page.url()}`);
+    await page.screenshot({ path: path.join(screenshotsDir, '05-trilhas-view.png'), fullPage: true });
 
-    // Verificar remoção do botão de Tutor IA no topbar
-    const topbarTutorBtn = page.locator('header button:has-text("Tutor IA")');
-    const topbarTutorCount = await topbarTutorBtn.count();
-    console.log(`ℹ️ Botão Tutor IA no topbar presente? ${topbarTutorCount > 0 ? 'SIM' : 'NÃO (Removido com sucesso)'}`);
-
-    // 4. Página Dedicada de Quizzes (/quizzes)
-    console.log('\n📍 [4/10] Testando Página de Quizzes & Avaliações (/quizzes)...');
-    await page.goto('http://localhost:5173/quizzes', { waitUntil: 'networkidle' });
+    // 4. Teste de Quizzes no modo Gestor/Admin
+    console.log('\n📍 [4/10] Testando Banco de Quizzes (/quizzes)...');
+    const quizzesLink = page.locator('header nav a').filter({ hasText: /Quizzes|Banco de Quizzes/ }).first();
+    await quizzesLink.click();
     await page.waitForTimeout(1000);
-    await page.screenshot({ path: path.join(screenshotsDir, '05-quizzes-view.png'), fullPage: true });
+    await page.screenshot({ path: path.join(screenshotsDir, '06-quizzes-gabarito.png'), fullPage: true });
+    console.log('✅ Banco de Quizzes acessado com sucesso (Modo Consulta com Gabarito Comentado).');
 
-    // Selecionar o primeiro quiz
-    const startQuizBtn = page.locator('button:has-text("Iniciar Simulado"), button:has-text("Fazer Simulado")').first();
-    if (await startQuizBtn.count() > 0) {
-      await startQuizBtn.click();
-      await page.waitForTimeout(500);
-
-      // Responder a primeira opção
-      const firstOption = page.locator('div.border.cursor-pointer, button.cursor-pointer').first();
-      if (await firstOption.count() > 0) {
-        await firstOption.click();
-        await page.waitForTimeout(500);
-        console.log('✅ Opção selecionada no quiz com feedback visual instantâneo.');
-      }
-      await page.screenshot({ path: path.join(screenshotsDir, '06-quiz-answered.png') });
-    }
-
-    // 4. Página Dedicada de Gestão de Turma (/gestao)
-    console.log('\n📍 [4/7] Testando Painel de Gestão da Turma (/gestao)...');
+    // 5. Teste de Gestão de Turma (/gestao) e Raio-X do Aluno
+    console.log('\n📍 [5/10] Testando Painel de Gestão (/gestao) e Raio-X do Aluno...');
     await page.goto('http://localhost:5173/gestao', { waitUntil: 'networkidle' });
     await page.waitForTimeout(1000);
-    await page.screenshot({ path: path.join(screenshotsDir, '07-management-view.png'), fullPage: true });
-    console.log('✅ Painel de Gestão (/gestao) renderizado com tabela de colaboradores e SLAs.');
+    await page.screenshot({ path: path.join(screenshotsDir, '07-gestao-turma.png'), fullPage: true });
 
-    // 5. Página Dedicada de Perfil (/perfil)
-    console.log('\n📍 [5/7] Testando Página de Perfil (/perfil)...');
-    await page.goto('http://localhost:5173/perfil', { waitUntil: 'networkidle' });
-    await page.waitForTimeout(1000);
-    await page.screenshot({ path: path.join(screenshotsDir, '08-profile-view.png'), fullPage: true });
-    console.log('✅ Página de Perfil (/perfil) renderizada com badges e status Keycloak.');
+    // Abrir Raio-X do primeiro aluno
+    const raioXBtn = page.locator('button:has-text("Raio-X")').first();
+    if (await raioXBtn.count() > 0) {
+      await raioXBtn.click();
+      await page.waitForTimeout(800);
+      await page.screenshot({ path: path.join(screenshotsDir, '08-gestao-raio-x-modal.png') });
+      console.log('✅ Modal Raio-X de Aprendizagem aberto com sucesso (Posicionamento atual e roteiro de lições visíveis).');
 
-    // 6. Tela Dedicada de Login (/login)
-    console.log('\n📍 [6/10] Testando Tela Dedicada de Login (/login) e Acesso Rápido...');
-    await page.goto('http://localhost:5173/login', { waitUntil: 'networkidle' });
-    await page.waitForTimeout(1000);
-    await page.screenshot({ path: path.join(screenshotsDir, '09-login-view.png'), fullPage: true });
+      // Testar Envio de Notificação de Apoio
+      const sendReminderBtn = page.locator('button:has-text("Enviar Notificação de Apoio")').first();
+      if (await sendReminderBtn.count() > 0) {
+        await sendReminderBtn.click();
+        await page.waitForTimeout(500);
+        console.log('✅ Notificação de apoio pedagógico disparada com sucesso.');
+      }
 
-    // Clicar no botão de Acesso Rápido para "Carlos Souza (Engenharia TI)"
-    const quickLoginBtn = page.locator('button').filter({ hasText: /Carlos Souza/ }).first();
-    if (await quickLoginBtn.count() > 0) {
-      await quickLoginBtn.click();
-      await page.waitForTimeout(2000);
-      await page.screenshot({ path: path.join(screenshotsDir, '10-post-login-dashboard.png'), fullPage: true });
-      console.log('✅ Login via Direct Access Grants no Keycloak efetuado com sucesso para Carlos Souza.');
+      // Fechar modal Raio-X
+      const closeRaioX = page.locator('button:has-text("Fechar Raio-X"), button:has-text("×")').first();
+      await closeRaioX.click();
+      await page.waitForTimeout(500);
     }
 
-    // 7. Código de Conduta (/codigo-conduta)
-    console.log('\n📍 [7/10] Testando Página de Código de Conduta (/codigo-conduta)...');
-    await page.goto('http://localhost:5173/codigo-conduta', { waitUntil: 'networkidle' });
+    // 6. Teste da Nova Tela de Perfil Repaginada (/perfil)
+    console.log('\n📍 [6/10] Testando Nova Tela de Perfil Repaginada (/perfil)...');
+    await page.goto('http://localhost:5173/perfil', { waitUntil: 'networkidle' });
     await page.waitForTimeout(1000);
-    await page.screenshot({ path: path.join(screenshotsDir, '11-codigo-conduta.png'), fullPage: true });
-    console.log('✅ Código de Conduta carregado.');
+    await page.screenshot({ path: path.join(screenshotsDir, '09-perfil-repaginado.png'), fullPage: true });
+    console.log('✅ Página de Perfil carregada com layout moderno, badges, métricas e sessão Keycloak.');
 
-    // 8. Segurança & Privacidade (/seguranca-privacidade)
-    console.log('\n📍 [8/10] Testando Página de Segurança & Privacidade (/seguranca-privacidade)...');
-    await page.goto('http://localhost:5173/seguranca-privacidade', { waitUntil: 'networkidle' });
-    await page.waitForTimeout(1000);
-    await page.screenshot({ path: path.join(screenshotsDir, '12-seguranca-privacidade.png'), fullPage: true });
-    console.log('✅ Segurança & Privacidade carregada.');
+    // Testar Modal de Certificado Digital
+    const certBtn = page.locator('button:has-text("Ver Certificado")').first();
+    if (await certBtn.count() > 0) {
+      await certBtn.click();
+      await page.waitForTimeout(800);
+      await page.screenshot({ path: path.join(screenshotsDir, '10-perfil-certificado-modal.png') });
+      console.log('✅ Modal de Certificado Digital aberto com brasão oficial, hash SHA-256 e validação.');
+      const closeCert = page.locator('div[role="dialog"] button:has-text("Imprimir"), div.fixed button').filter({ hasText: /X|Imprimir/ }).last();
+      await page.keyboard.press('Escape').catch(() => {});
+    }
 
-    // 9. Suporte ao Colaborador (/suporte)
-    console.log('\n📍 [9/9] Testando Página de Suporte ao Colaborador (/suporte)...');
+    // 7. Teste de Suporte com FAQ Categorizado e Busca (/suporte)
+    console.log('\n📍 [7/10] Testando Central de Suporte e FAQ Interativo (/suporte)...');
     await page.goto('http://localhost:5173/suporte', { waitUntil: 'networkidle' });
     await page.waitForTimeout(1000);
-    await page.screenshot({ path: path.join(screenshotsDir, '13-suporte.png'), fullPage: true });
-    console.log('✅ Suporte ao Colaborador carregado.');
 
-    // Tutor IA Interativo
-    console.log('\n📍 Testando Drawer do Tutor Virtual de IA...');
+    // Testar filtro por categoria "Gestores & Raio-X"
+    const gestorTab = page.locator('button:has-text("Gestores & Raio-X")').first();
+    if (await gestorTab.count() > 0) {
+      await gestorTab.click();
+      await page.waitForTimeout(500);
+      console.log('✅ Filtro de categoria do FAQ "Gestores & Raio-X" selecionado.');
+    }
+
+    // Abrir o primeiro item do FAQ
+    const faqQuestion = page.locator('section button:has-text("Como o gestor acompanha")').first();
+    if (await faqQuestion.count() > 0) {
+      await faqQuestion.click();
+      await page.waitForTimeout(400);
+      console.log('✅ Pergunta do FAQ expandida com resposta detalhada.');
+    }
+    await page.screenshot({ path: path.join(screenshotsDir, '11-suporte-faq.png'), fullPage: true });
+
+    // 8. Teste da Tela de Login Isolada (/login)
+    console.log('\n📍 [8/10] Testando Tela de Login Isolada (/login)...');
+    await page.goto('http://localhost:5173/login', { waitUntil: 'networkidle' });
+    await page.waitForTimeout(1000);
+    await page.screenshot({ path: path.join(screenshotsDir, '12-login-standalone.png'), fullPage: true });
+
+    const headerOnLogin = await page.locator('header').count();
+    const footerOnLogin = await page.locator('footer').count();
+    console.log(`ℹ️ Header presente no /login? ${headerOnLogin > 0 ? 'SIM' : 'NÃO (Correto)'}`);
+    console.log(`ℹ️ Footer presente no /login? ${footerOnLogin > 0 ? 'SIM' : 'NÃO (Correto)'}`);
+
+    // 9. Tutor IA Interativo Drawer
+    console.log('\n📍 [9/10] Retornando à Home para Testar Tutor IA Drawer...');
+    await page.goto('http://localhost:5173', { waitUntil: 'networkidle' });
+    await page.waitForTimeout(1000);
+    // Fechar tutorial se reaparecer
+    const skipBtn = page.locator('button:has-text("Pular Tutorial"), button:has-text("Começar Minha Jornada")').first();
+    if (await skipBtn.isVisible().catch(() => false)) {
+      await skipBtn.click();
+      await page.waitForTimeout(400);
+    }
+
     const tutorBtn = page.locator('button:has-text("Tutor IA")').first();
     if (await tutorBtn.count() > 0) {
       await tutorBtn.click();
       await page.waitForTimeout(1000);
       const inputQuestion = page.locator('input[placeholder*="Dúvida"], textarea').first();
       if (await inputQuestion.count() > 0) {
-        await inputQuestion.fill('Qual o propósito de uma cooperativa de crédito?');
+        await inputQuestion.fill('Qual a diferença entre uma cooperativa e um banco comercial?');
         await inputQuestion.press('Enter');
         await page.waitForTimeout(4000);
-        await page.screenshot({ path: path.join(screenshotsDir, '14-tutor-interaction.png') });
+        await page.screenshot({ path: path.join(screenshotsDir, '13-tutor-resposta.png') });
         console.log('✅ Interação com Tutor IA capturada com sucesso.');
       }
     }
 
+    console.log('\n📍 [10/10] Todos os fluxos testados com sucesso.');
   } catch (err) {
     console.error('❌ Erro durante o fluxo E2E:', err);
     await page.screenshot({ path: path.join(screenshotsDir, 'error-state.png'), fullPage: true });

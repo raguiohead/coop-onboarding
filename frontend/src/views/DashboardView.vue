@@ -8,6 +8,7 @@ import { useAiTutorStore } from '@/stores/aiTutor';
 import ProgressBar from '@/components/common/ProgressBar.vue';
 import SkeletonLoader from '@/components/common/SkeletonLoader.vue';
 import QuizGeneratorModal from '@/components/ai/QuizGeneratorModal.vue';
+import OnboardingTutorialModal from '@/components/common/OnboardingTutorialModal.vue';
 import {
   Sparkles,
   BookOpen,
@@ -25,6 +26,7 @@ import {
   Activity,
   Database,
   ExternalLink,
+  Compass,
 } from 'lucide-vue-next';
 
 const router = useRouter();
@@ -34,13 +36,29 @@ const quizStore = useQuizStore();
 const aiTutorStore = useAiTutorStore();
 
 const isQuizModalOpen = ref(false);
+const isTutorialOpen = ref(false);
 
 onMounted(async () => {
   if (!authStore.token) {
     await authStore.syncKeycloakToken(authStore.currentUser.id);
   }
   await trackStore.fetchTracks();
+
+  // Se for primeiro acesso do colaborador, abre o tutorial automaticamente
+  if (authStore.isColaborador) {
+    const seenKey = 'coop_tour_seen_' + authStore.currentUser.id;
+    if (!localStorage.getItem(seenKey)) {
+      setTimeout(() => {
+        isTutorialOpen.value = true;
+      }, 700);
+    }
+  }
 });
+
+function closeTutorial() {
+  isTutorialOpen.value = false;
+  localStorage.setItem('coop_tour_seen_' + authStore.currentUser.id, 'true');
+}
 
 function openTrackLesson(trackId: string) {
   if (authStore.isGestor) {
@@ -113,6 +131,16 @@ function openTrackLesson(trackId: string) {
 
       <!-- Action buttons depending on role -->
       <div class="flex items-center space-x-2 shrink-0">
+        <button
+          v-if="authStore.isColaborador"
+          @click="isTutorialOpen = true"
+          class="px-3.5 py-1.5 rounded-xl text-xs font-bold text-indigo-700 bg-indigo-50/80 hover:bg-indigo-100 border border-indigo-200/60 shadow-2xs transition-all flex items-center space-x-1.5 cursor-pointer whitespace-nowrap"
+          title="Rever o Guia Rápido da Plataforma"
+        >
+          <Compass class="w-3.5 h-3.5 text-indigo-600" />
+          <span>Guia Rápido</span>
+        </button>
+
         <button
           v-if="authStore.canGenerateQuiz"
           @click="isQuizModalOpen = true"
@@ -436,6 +464,12 @@ function openTrackLesson(trackId: string) {
       lesson-id="d1a2b3c4-0001-4000-8000-000000000001"
       lesson-title="Formação de Novos Cooperados & Colaboradores"
       @close="isQuizModalOpen = false"
+    />
+
+    <!-- Modal do Guia Rápido de Onboarding -->
+    <OnboardingTutorialModal
+      :is-open="isTutorialOpen"
+      @close="closeTutorial"
     />
   </div>
 </template>
