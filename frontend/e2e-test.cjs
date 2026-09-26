@@ -127,7 +127,7 @@ async function runE2E() {
     console.log('✅ Página de Perfil (/perfil) renderizada com badges e status Keycloak.');
 
     // 6. Tela Dedicada de Login (/login)
-    console.log('\n📍 [6/7] Testando Tela Dedicada de Login (/login) e Acesso Rápido...');
+    console.log('\n📍 [6/10] Testando Tela Dedicada de Login (/login) e Acesso Rápido...');
     await page.goto('http://localhost:5173/login', { waitUntil: 'networkidle' });
     await page.waitForTimeout(1000);
     await page.screenshot({ path: path.join(screenshotsDir, '09-login-view.png'), fullPage: true });
@@ -140,6 +140,34 @@ async function runE2E() {
       await page.screenshot({ path: path.join(screenshotsDir, '10-post-login-dashboard.png'), fullPage: true });
       console.log('✅ Login via Direct Access Grants no Keycloak efetuado com sucesso para Carlos Souza.');
     }
+
+    // 7. Código de Conduta (/codigo-conduta)
+    console.log('\n📍 [7/10] Testando Página de Código de Conduta (/codigo-conduta)...');
+    await page.goto('http://localhost:5173/codigo-conduta', { waitUntil: 'networkidle' });
+    await page.waitForTimeout(1000);
+    await page.screenshot({ path: path.join(screenshotsDir, '11-codigo-conduta.png'), fullPage: true });
+    console.log('✅ Código de Conduta carregado.');
+
+    // 8. Segurança & Privacidade (/seguranca-privacidade)
+    console.log('\n📍 [8/10] Testando Página de Segurança & Privacidade (/seguranca-privacidade)...');
+    await page.goto('http://localhost:5173/seguranca-privacidade', { waitUntil: 'networkidle' });
+    await page.waitForTimeout(1000);
+    await page.screenshot({ path: path.join(screenshotsDir, '12-seguranca-privacidade.png'), fullPage: true });
+    console.log('✅ Segurança & Privacidade carregada.');
+
+    // 9. Suporte ao Colaborador (/suporte)
+    console.log('\n📍 [9/10] Testando Página de Suporte ao Colaborador (/suporte)...');
+    await page.goto('http://localhost:5173/suporte', { waitUntil: 'networkidle' });
+    await page.waitForTimeout(1000);
+    await page.screenshot({ path: path.join(screenshotsDir, '13-suporte.png'), fullPage: true });
+    console.log('✅ Suporte ao Colaborador carregado.');
+
+    // 10. Design System (/design-system)
+    console.log('\n📍 [10/10] Testando Página Viva do Design System (/design-system)...');
+    await page.goto('http://localhost:5173/design-system', { waitUntil: 'networkidle' });
+    await page.waitForTimeout(1000);
+    await page.screenshot({ path: path.join(screenshotsDir, '14-design-system.png'), fullPage: true });
+    console.log('✅ Página do Design System carregada.');
 
     // 7. Tutor IA Interativo
     console.log('\n📍 [7/7] Testando Drawer do Tutor Virtual de IA...');

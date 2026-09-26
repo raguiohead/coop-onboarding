@@ -7,13 +7,13 @@ const props = withDefaults(
     max?: number;
     showLabel?: boolean;
     size?: 'sm' | 'md' | 'lg';
-    variant?: 'brand' | 'ai' | 'success';
+    variant?: 'brand' | 'coop' | 'ai' | 'success';
   }>(),
   {
     max: 100,
     showLabel: false,
     size: 'md',
-    variant: 'brand',
+    variant: 'coop',
   }
 );
 
@@ -39,8 +39,11 @@ const barGradient = computed(() => {
       return 'bg-gradient-to-r from-ai-500 to-indigo-600';
     case 'success':
       return 'bg-gradient-to-r from-emerald-500 to-teal-500';
-    default:
+    case 'brand':
       return 'bg-gradient-to-r from-brand-500 to-brand-700';
+    case 'coop':
+    default:
+      return 'bg-gradient-to-r from-coop-500 to-coop-700';
   }
 });
 </script>

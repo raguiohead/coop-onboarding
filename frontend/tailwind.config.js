@@ -8,6 +8,19 @@ export default {
   theme: {
     extend: {
       colors: {
+        coop: {
+          50: '#e6f4ea',
+          100: '#c2e7cc',
+          200: '#8ed5a3',
+          300: '#55be76',
+          400: '#29a752',
+          500: '#008751', // Verde Cooperativo Canônico
+          600: '#008751', // Ação Primária Cooperativa
+          700: '#006e42',
+          800: '#005a36', // Verde Cooperativo Profundo
+          900: '#00472b',
+          950: '#002919',
+        },
         brand: {
           50: '#f0fdfa',
           100: '#ccfbf1',
@@ -34,6 +47,9 @@ export default {
           900: '#312e81',
           violet: '#8b5cf6',
         }
+      },
+      boxShadow: {
+        'xs': '0 1px 2px 0 rgba(0, 0, 0, 0.05)',
       },
       fontFamily: {
         sans: ['"Plus Jakarta Sans"', 'Inter', 'system-ui', '-apple-system', 'sans-serif'],
