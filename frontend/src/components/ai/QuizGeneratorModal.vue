@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref } from 'vue';
+import { ref, computed } from 'vue';
 import type { QuizQuestion, Lesson } from '@/types';
 import { api } from '@/api/client';
 import {
@@ -14,12 +14,27 @@ import {
 
 const props = defineProps<{
   isOpen: boolean;
-  lesson: Lesson | undefined;
+  lesson?: Lesson;
+  lessonId?: string;
+  lessonTitle?: string;
 }>();
 
 const emit = defineEmits<{
   (e: 'close'): void;
 }>();
+
+const activeLesson = computed<Lesson>(() => {
+  if (props.lesson) return props.lesson;
+  return {
+    id: props.lessonId || 'd1a2b3c4-0001-4000-8000-000000000001',
+    moduleId: 'mod-101',
+    title: props.lessonTitle || 'Formação de Novos Cooperados & Colaboradores',
+    orderIndex: 1,
+    estimatedMinutes: 25,
+    completed: false,
+    contentMarkdown: 'Cultura e governança do cooperativismo de crédito e princípios de Rochdale.',
+  };
+});
 
 const questionCount = ref(3);
 const isGenerating = ref(false);
@@ -29,8 +44,7 @@ const showExplanations = ref<Record<number, boolean>>({});
 const errorMessage = ref<string | null>(null);
 
 async function handleGenerateQuiz() {
-  if (!props.lesson) return;
-
+  const currentLesson = activeLesson.value;
   isGenerating.value = true;
   errorMessage.value = null;
   userAnswers.value = {};
@@ -38,10 +52,11 @@ async function handleGenerateQuiz() {
 
   try {
     const res = await api.generateQuiz(
-      props.lesson.id,
-      props.lesson.contentMarkdown,
+      currentLesson.id,
+      currentLesson.contentMarkdown,
       questionCount.value
     );
+
     if (res && res.questions && res.questions.length > 0) {
       questions.value = res.questions;
     } else {
@@ -50,7 +65,7 @@ async function handleGenerateQuiz() {
   } catch {
     // Intelligent fallback synthesizing quiz questions based on the lesson content
     await new Promise((resolve) => setTimeout(resolve, 800));
-    questions.value = generateFallbackQuiz(props.lesson, questionCount.value);
+    questions.value = generateFallbackQuiz(currentLesson, questionCount.value);
   } finally {
     isGenerating.value = false;
   }
@@ -190,7 +205,7 @@ function generateFallbackQuiz(lesson: Lesson, count: number): QuizQuestion[] {
                   </span>
                 </h3>
                 <p class="text-xs text-slate-300">
-                  Lição: {{ lesson?.title }}
+                  Lição: {{ activeLesson.title }}
                 </p>
               </div>
             </div>

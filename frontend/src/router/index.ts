@@ -1,10 +1,21 @@
 import { createRouter, createWebHistory } from 'vue-router';
 import DashboardView from '@/views/DashboardView.vue';
 import LessonView from '@/views/LessonView.vue';
+import QuizzesView from '@/views/QuizzesView.vue';
+import ManagementView from '@/views/ManagementView.vue';
+import ProfileView from '@/views/ProfileView.vue';
+import LoginView from '@/views/LoginView.vue';
+import { useAuthStore } from '@/stores/auth';
 
 const router = createRouter({
   history: createWebHistory(),
   routes: [
+    {
+      path: '/login',
+      name: 'login',
+      component: LoginView,
+      meta: { public: true },
+    },
     {
       path: '/',
       name: 'dashboard',
@@ -16,6 +27,21 @@ const router = createRouter({
       component: LessonView,
     },
     {
+      path: '/quizzes',
+      name: 'quizzes',
+      component: QuizzesView,
+    },
+    {
+      path: '/gestao',
+      name: 'gestao',
+      component: ManagementView,
+    },
+    {
+      path: '/perfil',
+      name: 'perfil',
+      component: ProfileView,
+    },
+    {
       path: '/:pathMatch(.*)*',
       redirect: '/',
     },
@@ -23,6 +49,19 @@ const router = createRouter({
   scrollBehavior() {
     return { top: 0 };
   },
+});
+
+router.beforeEach(async (to, from, next) => {
+  const authStore = useAuthStore();
+  if (to.meta.public) {
+    next();
+    return;
+  }
+  // Se não possuir token ativo, sincroniza silenciosamente com o perfil atual
+  if (!authStore.token) {
+    await authStore.syncKeycloakToken(authStore.currentUser.id);
+  }
+  next();
 });
 
 export default router;
