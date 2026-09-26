@@ -100,7 +100,7 @@ function handleLogout() {
               active-class="!text-brand-700 !bg-brand-50 shadow-2xs font-bold"
             >
               <BookOpen class="w-4 h-4" />
-              <span>{{ authStore.isGestor ? 'Catálogo de Trilhas' : 'Trilhas' }}</span>
+              <span>{{ (authStore.isGestor || authStore.isAdmin) ? 'Catálogo de Trilhas' : 'Trilhas' }}</span>
             </router-link>
 
             <router-link
@@ -109,10 +109,12 @@ function handleLogout() {
               active-class="!text-brand-700 !bg-brand-50 shadow-2xs font-bold"
             >
               <HelpCircle class="w-4 h-4" />
-              <span>{{ authStore.isGestor ? 'Banco de Quizzes' : 'Quizzes' }}</span>
+              <span>{{ (authStore.isGestor || authStore.isAdmin) ? 'Banco de Quizzes' : 'Quizzes' }}</span>
             </router-link>
 
+            <!-- Guia Rápido (Exclusivo para Colaboradores) -->
             <button
+              v-if="authStore.isColaborador"
               @click="isTutorialOpen = true"
               class="px-3.5 py-2.5 rounded-xl text-sm font-semibold transition-all flex items-center space-x-2 text-indigo-700 bg-indigo-50/80 hover:bg-indigo-100 border border-indigo-200/60 cursor-pointer whitespace-nowrap shadow-2xs"
               title="Abrir o Guia Rápido da Plataforma"
@@ -211,8 +213,9 @@ function handleLogout() {
       </div>
     </div>
 
-    <!-- Modal de Guia Rápido Onboarding -->
+    <!-- Modal de Guia Rápido Onboarding (Apenas para Colaborador) -->
     <OnboardingTutorialModal
+      v-if="authStore.isColaborador"
       :is-open="isTutorialOpen"
       @close="isTutorialOpen = false"
     />

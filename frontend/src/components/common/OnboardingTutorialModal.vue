@@ -108,12 +108,13 @@ function finishTour() {
 </script>
 
 <template>
-  <div
-    v-if="isOpen"
-    class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/70 backdrop-blur-sm animate-fade-in"
-  >
-    <div class="bg-white rounded-3xl shadow-2xl border border-slate-200 max-w-2xl w-full overflow-hidden flex flex-col max-h-[90vh]">
-      <!-- Header -->
+  <Teleport to="body">
+    <div
+      v-if="isOpen"
+      class="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 bg-slate-950/75 backdrop-blur-sm animate-fade-in"
+    >
+      <div class="bg-white rounded-3xl shadow-2xl border border-slate-200 max-w-2xl w-full overflow-hidden flex flex-col max-h-[85vh] my-auto">
+        <!-- Header -->
       <div class="px-6 sm:px-8 py-5 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
         <div class="flex items-center space-x-2.5">
           <div class="w-8 h-8 rounded-xl bg-brand-50 text-brand-700 flex items-center justify-center font-bold">
@@ -219,4 +220,5 @@ function finishTour() {
       </div>
     </div>
   </div>
+</Teleport>
 </template>

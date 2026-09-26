@@ -113,15 +113,15 @@ function closeQuizRunner() {
       <div>
         <div class="inline-flex items-center space-x-2 px-2.5 py-1 rounded-md text-[11px] font-bold bg-indigo-500/20 text-indigo-300 border border-indigo-400/30 uppercase tracking-wider mb-2">
           <Award class="w-3.5 h-3.5" />
-          <span v-if="authStore.isGestor">Banco Pedagógico de Avaliações (Modo Gestor)</span>
+          <span v-if="authStore.isGestor || authStore.isAdmin">Banco Pedagógico de Avaliações (Modo Consulta)</span>
           <span v-else>Avaliações & Fixação Pedagógica</span>
         </div>
         <h1 class="text-2xl sm:text-3xl font-extrabold tracking-tight font-sans">
-          {{ authStore.isGestor ? 'Banco de Quizzes da Turma' : 'Central de Quizzes & Simulados' }}
+          {{ (authStore.isGestor || authStore.isAdmin) ? 'Banco de Quizzes da Turma' : 'Central de Quizzes & Simulados' }}
         </h1>
         <p class="text-xs sm:text-sm text-slate-300 mt-1 max-w-2xl">
-          <span v-if="authStore.isGestor">
-            Supervisão pedagógica dos simulados da turma. Como gestor, você visualiza todas as questões e gabaritos comentados com fundamentação regulatória para orientar sua equipe. A adesão e notas são exclusivas para os colaboradores.
+          <span v-if="authStore.isGestor || authStore.isAdmin">
+            Supervisão pedagógica dos simulados da turma. Como gestor ou administrador, você visualiza todas as questões e gabaritos comentados com fundamentação regulatória para orientar a equipe. A realização com notas é exclusiva para os colaboradores.
           </span>
           <span v-else>
             Teste seus conhecimentos nos pilares cooperativistas, diretrizes normativas e políticas de crédito com justificativas pedagógicas detalhadas.
@@ -224,7 +224,7 @@ function closeQuizRunner() {
               {{ activeQuiz.category }} · Questão {{ currentQuestionIndex + 1 }} de {{ activeQuiz.questions.length }}
             </span>
             <span v-if="isInspectionMode" class="text-[11px] font-bold text-amber-700 bg-amber-50 px-2 py-0.5 rounded border border-amber-200 uppercase">
-              Modo Consulta Pedagógica (Gestor)
+              Modo Consulta Pedagógica ({{ authStore.isAdmin ? 'Admin' : 'Gestor' }})
             </span>
           </div>
           <h2 class="text-lg sm:text-xl font-bold text-slate-900 mt-1">

@@ -87,25 +87,25 @@ function continueTrack(trackId: string) {
 </script>
 
 <template>
-  <div class="space-y-8 pb-16 animate-fade-in max-w-7xl mx-auto">
+  <div class="space-y-8 pb-16 animate-fade-in">
     <!-- Hero Banner -->
     <div class="bg-gradient-to-br from-slate-900 via-brand-950 to-slate-900 rounded-3xl p-8 sm:p-10 text-white relative overflow-hidden shadow-xl border border-slate-800">
       <div class="absolute -right-10 -bottom-10 w-96 h-96 bg-brand-500/10 rounded-full blur-3xl pointer-events-none"></div>
       <div class="relative z-10 max-w-3xl space-y-4">
-        <div v-if="authStore.isGestor" class="inline-flex items-center space-x-2 px-3 py-1 rounded-full text-xs font-semibold bg-indigo-500/20 text-indigo-300 border border-indigo-500/30">
+        <div v-if="authStore.isGestor || authStore.isAdmin" class="inline-flex items-center space-x-2 px-3 py-1 rounded-full text-xs font-semibold bg-indigo-500/20 text-indigo-300 border border-indigo-500/30">
           <Eye class="w-3.5 h-3.5" />
-          <span>Visão Consultiva do Gestor — Catálogo de Conteúdos</span>
+          <span>{{ authStore.isAdmin ? 'Visão de Governança & Consulta — Matriz de Capacitação' : 'Visão Consultiva do Gestor — Catálogo de Conteúdos' }}</span>
         </div>
         <div v-else class="inline-flex items-center space-x-2 px-3 py-1 rounded-full text-xs font-semibold bg-brand-500/20 text-brand-300 border border-brand-500/30">
           <BookOpen class="w-3.5 h-3.5" />
           <span>Matriz de Capacitação Institucional</span>
         </div>
         <h1 class="text-2xl sm:text-4xl font-extrabold tracking-tight font-sans">
-          {{ authStore.isGestor ? 'Catálogo de Trilhas da Turma' : 'Trilhas de Aprendizagem & Formação' }}
+          {{ (authStore.isGestor || authStore.isAdmin) ? 'Catálogo de Trilhas Institucionais' : 'Trilhas de Aprendizagem & Formação' }}
         </h1>
         <p class="text-sm sm:text-base text-slate-300 leading-relaxed">
-          <span v-if="authStore.isGestor">
-            Como gestor, você visualiza a grade curricular completa, módulos e ementas pedagógicas para orientar o plano de desenvolvimento dos membros da sua equipe.
+          <span v-if="authStore.isGestor || authStore.isAdmin">
+            Visualização consultiva da grade curricular completa, módulos e ementas pedagógicas para acompanhamento da turma e orientação dos planos de capacitação.
           </span>
           <span v-else>
             Explore as jornadas estruturadas de integração para aprofundar seu conhecimento em governança cooperativa, regulação financeira, crédito consciente e ferramentas corporativas.
@@ -124,10 +124,10 @@ function continueTrack(trackId: string) {
               <span class="font-bold text-white">{{ trackStore.completedCount }} de {{ trackStore.totalLessonsCount }}</span>
             </div>
           </template>
-          <template v-else-if="authStore.isGestor">
+          <template v-else-if="authStore.isGestor || authStore.isAdmin">
             <div class="bg-white/10 backdrop-blur-md px-4 py-2 rounded-2xl border border-white/10 flex items-center space-x-2">
               <span class="text-slate-300">Papel:</span>
-              <span class="font-bold text-indigo-300">Gestor de Equipe</span>
+              <span class="font-bold text-indigo-300">{{ authStore.isAdmin ? 'Administrador Master' : 'Gestor de Equipe' }}</span>
             </div>
             <div class="bg-white/10 backdrop-blur-md px-4 py-2 rounded-2xl border border-white/10 flex items-center space-x-2">
               <span class="text-slate-300">Trilhas no Catálogo:</span>
@@ -222,16 +222,16 @@ function continueTrack(trackId: string) {
               </div>
               <ProgressBar :value="trackStore.getTrackProgressPercent(track.id)" variant="brand" />
             </div>
-            <div v-else-if="authStore.isGestor" class="px-3 py-1.5 rounded-xl bg-indigo-50 text-indigo-800 border border-indigo-200 text-xs font-bold flex items-center gap-1.5">
+            <div v-else-if="authStore.isGestor || authStore.isAdmin" class="px-3 py-1.5 rounded-xl bg-indigo-50 text-indigo-800 border border-indigo-200 text-xs font-bold flex items-center gap-1.5">
               <Eye class="w-3.5 h-3.5 text-indigo-600" />
-              <span>Grade Curricular da Turma</span>
+              <span>{{ authStore.isAdmin ? 'Grade Curricular Corporativa' : 'Grade Curricular da Turma' }}</span>
             </div>
 
             <button
               @click="continueTrack(track.id)"
               class="w-full sm:w-auto inline-flex items-center justify-center space-x-2 px-5 py-3 rounded-2xl text-xs sm:text-sm font-bold bg-brand-600 hover:bg-brand-700 text-white shadow-md shadow-brand-600/20 hover:scale-[1.02] active:scale-[0.98] transition-all cursor-pointer"
             >
-              <span>{{ authStore.isGestor ? 'Consultar Módulos da Trilha' : 'Continuar Trilha' }}</span>
+              <span>{{ (authStore.isGestor || authStore.isAdmin) ? 'Consultar Módulos da Trilha' : 'Continuar Trilha' }}</span>
               <ArrowRight class="w-4 h-4" />
             </button>
           </div>

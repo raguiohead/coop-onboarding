@@ -61,7 +61,7 @@ function closeTutorial() {
 }
 
 function openTrackLesson(trackId: string) {
-  if (authStore.isGestor) {
+  if (authStore.isGestor || authStore.isAdmin) {
     router.push('/trilhas');
     return;
   }
@@ -450,7 +450,7 @@ function openTrackLesson(trackId: string) {
               @click="openTrackLesson(track.id)"
               class="inline-flex items-center space-x-2 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-bold bg-brand-700 hover:bg-brand-800 text-white shadow-md shadow-brand-700/20 group-hover:bg-brand-600 transition-all cursor-pointer"
             >
-              <span>{{ authStore.isGestor ? 'Consultar Grade Curricular' : 'Continuar Trilha' }}</span>
+              <span>{{ (authStore.isGestor || authStore.isAdmin) ? 'Consultar Grade Curricular' : 'Continuar Trilha' }}</span>
               <ArrowRight class="w-4 h-4" />
             </button>
           </div>
@@ -466,8 +466,9 @@ function openTrackLesson(trackId: string) {
       @close="isQuizModalOpen = false"
     />
 
-    <!-- Modal do Guia Rápido de Onboarding -->
+    <!-- Modal do Guia Rápido de Onboarding (Apenas para Colaborador) -->
     <OnboardingTutorialModal
+      v-if="authStore.isColaborador"
       :is-open="isTutorialOpen"
       @close="closeTutorial"
     />
