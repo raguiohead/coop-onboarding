@@ -42,9 +42,14 @@ spring:
         options:
           model: llama3.2:3b
           temperature: 0.3
+          keep_alive: 24h
+          num_predict: 512
+          top_p: 0.9
+          top_k: 40
       embedding:
         options:
           model: nomic-embed-text
+          keep_alive: 24h
     vectorstore:
       pgvector:
         index-type: HNSW
