@@ -25,6 +25,9 @@ const trackStore = useTrackStore();
 const aiTutorStore = useAiTutorStore();
 
 onMounted(async () => {
+  if (!authStore.token) {
+    await authStore.syncKeycloakToken(authStore.currentUser.id);
+  }
   await trackStore.fetchTracks();
 });
 

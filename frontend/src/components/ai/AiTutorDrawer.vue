@@ -71,10 +71,10 @@ watch(
 
 async function handleSendMessage(customPrompt?: string) {
   const query = customPrompt || userInput.value;
-  if (!query.trim()) return;
-
-  const lessonId = currentLesson.value?.id || 'les-general';
-  const lessonTitle = currentLesson.value?.title;
+  if (!query || !query.trim()) return;
+  const defaultLessonId = 'd1a2b3c4-0001-4000-8000-000000000001';
+  const lessonId = currentLesson.value?.id || defaultLessonId;
+  const lessonTitle = currentLesson.value?.title || 'Cultura Cooperativista';
   const lessonContent = currentLesson.value?.contentMarkdown;
 
   userInput.value = '';

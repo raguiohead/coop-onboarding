@@ -16,6 +16,7 @@ build/
 node_modules/
 dist/
 .output/
+screenshots/
 
 # Docker & Local Data
 docker/data/
