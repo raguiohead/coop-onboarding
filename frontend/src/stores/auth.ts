@@ -42,10 +42,14 @@ const profileCredentials: Record<string, { user: string; pass: string }> = {
 export const useAuthStore = defineStore('auth', () => {
   const currentUser = ref<UserProfile>(mockProfiles[0]);
   const token = ref<string | null>(localStorage.getItem('coop_auth_token'));
+  const refreshToken = ref<string | null>(localStorage.getItem('coop_refresh_token'));
 
   if (token.value) {
     api.setToken(token.value);
   }
+
+  // Registra o interceptor de renovação automática no cliente HTTP
+  api.setRefreshTokenHandler(refreshKeycloakToken);
 
   // Tenta sincronizar com o Keycloak na inicialização se não houver token ou para renovar
   syncKeycloakToken(currentUser.value.id);
@@ -66,9 +70,9 @@ export const useAuthStore = defineStore('auth', () => {
     }
   });
 
-  async function syncKeycloakToken(profileId: string) {
+  async function syncKeycloakToken(profileId: string): Promise<string | null> {
     const creds = profileCredentials[profileId];
-    if (!creds) return;
+    if (!creds) return null;
     try {
       const body = new URLSearchParams({
         client_id: 'coop-frontend',
@@ -84,10 +88,46 @@ export const useAuthStore = defineStore('auth', () => {
       if (res.ok) {
         const data = await res.json();
         setToken(data.access_token);
+        if (data.refresh_token) {
+          setRefreshToken(data.refresh_token);
+        }
+        return data.access_token;
       }
     } catch (err) {
       console.warn('Keycloak offline ou erro ao obter token:', err);
     }
+    return null;
+  }
+
+  async function refreshKeycloakToken(): Promise<string | null> {
+    if (refreshToken.value) {
+      try {
+        const body = new URLSearchParams({
+          client_id: 'coop-frontend',
+          grant_type: 'refresh_token',
+          refresh_token: refreshToken.value,
+        });
+        const res = await fetch('http://localhost:8180/realms/coop-onboarding/protocol/openid-connect/token', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+          body: body.toString(),
+        });
+        if (res.ok) {
+          const data = await res.json();
+          setToken(data.access_token);
+          if (data.refresh_token) {
+            setRefreshToken(data.refresh_token);
+          }
+          console.info('Token Keycloak renovado com sucesso via Refresh Token Flow.');
+          return data.access_token;
+        }
+      } catch (err) {
+        console.warn('Erro ao renovar token via refresh_token:', err);
+      }
+    }
+
+    // Fallback: re-autentica via credenciais do perfil simulado ativo
+    return syncKeycloakToken(currentUser.value.id);
   }
 
   async function switchProfile(profileId: string) {
@@ -113,9 +153,19 @@ export const useAuthStore = defineStore('auth', () => {
     }
   }
 
+  function setRefreshToken(newRefreshToken: string | null) {
+    refreshToken.value = newRefreshToken;
+    if (newRefreshToken) {
+      localStorage.setItem('coop_refresh_token', newRefreshToken);
+    } else {
+      localStorage.removeItem('coop_refresh_token');
+    }
+  }
+
   return {
     currentUser,
     token,
+    refreshToken,
     mockProfiles,
     isColaborador,
     isGestor,
@@ -124,7 +174,9 @@ export const useAuthStore = defineStore('auth', () => {
     roleBadge,
     switchProfile,
     syncKeycloakToken,
+    refreshKeycloakToken,
     setRole,
     setToken,
+    setRefreshToken,
   };
 });
