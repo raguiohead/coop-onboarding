@@ -59,10 +59,10 @@ flowchart TD
         PgVector["pgvector (HNSW Index / Cosine)"]
     end
 
-    SPA -->|1. Authenticate| KC
-    SPA -->|2. Bearer JWT API Call| ResourceServer
-    AIDrawer -->|3. Ask Tutor /api/v1/ai/tutor/ask| AIModule
-    QuizModal -->|4. Generate Quiz /api/v1/ai/quiz/generate| AIModule
+    SPA -->|"1. Authenticate"| KC
+    SPA -->|"2. Bearer JWT API Call"| ResourceServer
+    AIDrawer -->|"3. Ask Tutor /api/v1/ai/tutor/ask"| AIModule
+    QuizModal -->|"4. Generate Quiz /api/v1/ai/quiz/generate"| AIModule
 
     ResourceServer --> TrackModule
     ResourceServer --> UserModule
@@ -70,9 +70,9 @@ flowchart TD
 
     TrackModule --> Postgres
     UserModule --> Postgres
-    AIModule -->|RAG Query / Embeddings| Embeddings
-    AIModule -->|Similarity Search (Metadata Filtering)| PgVector
-    AIModule -->|Prompt & Context| Ollama
+    AIModule -->|"RAG Query / Embeddings"| Embeddings
+    AIModule -->|"Similarity Search (Metadata Filtering)"| PgVector
+    AIModule -->|"Prompt & Context"| Ollama
 ```
 
 ---
