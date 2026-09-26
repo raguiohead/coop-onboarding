@@ -145,6 +145,13 @@ export const useAuthStore = defineStore('auth', () => {
     }
   });
 
+  function getKeycloakTokenUrl(): string {
+    if (typeof window !== 'undefined' && window.location.hostname !== 'localhost') {
+      return `${window.location.origin}/auth/realms/coop-onboarding/protocol/openid-connect/token`;
+    }
+    return 'http://localhost:8180/realms/coop-onboarding/protocol/openid-connect/token';
+  }
+
   async function login(username: string, pass: string): Promise<boolean> {
     try {
       const body = new URLSearchParams({
@@ -154,7 +161,7 @@ export const useAuthStore = defineStore('auth', () => {
         password: pass,
       });
 
-      const res = await fetch('http://localhost:8180/realms/coop-onboarding/protocol/openid-connect/token', {
+      const res = await fetch(getKeycloakTokenUrl(), {
         method: 'POST',
         headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
         body: body.toString(),
@@ -202,7 +209,7 @@ export const useAuthStore = defineStore('auth', () => {
           grant_type: 'refresh_token',
           refresh_token: refreshToken.value,
         });
-        const res = await fetch('http://localhost:8180/realms/coop-onboarding/protocol/openid-connect/token', {
+        const res = await fetch(getKeycloakTokenUrl(), {
           method: 'POST',
           headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
           body: body.toString(),
