@@ -1,0 +1,23 @@
+# Git & IDE
+.idea/
+.vscode/
+*.iml
+*.log
+.DS_Store
+
+# Java / Maven / Gradle
+target/
+build/
+.gradle/
+*.jar
+*.war
+
+# Node / Frontend
+node_modules/
+dist/
+.output/
+
+# Docker & Local Data
+docker/data/
+*.env
+!.env.example
