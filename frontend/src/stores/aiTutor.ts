@@ -45,7 +45,7 @@ export const useAiTutorStore = defineStore('aiTutor', () => {
     isThinking.value = true;
 
     try {
-      // 1. Tenta Streaming SSE progressivo em tempo real
+      let isFirstChunk = true;
       const tutorMessageId = `tutor-${Date.now()}`;
       const tutorMessage: AiMessage = {
         id: tutorMessageId,
@@ -57,37 +57,37 @@ export const useAiTutorStore = defineStore('aiTutor', () => {
           'Normativas de Integração e Governança Cooperativista',
         ],
       };
-      messages.value.push(tutorMessage);
 
       await api.streamTutor(lessonId, question, (chunk) => {
-        isThinking.value = false;
+        if (isFirstChunk) {
+          isThinking.value = false;
+          messages.value.push(tutorMessage);
+          isFirstChunk = false;
+        }
         tutorMessage.text += chunk;
       });
 
-      if (!tutorMessage.text.trim()) {
+      if (isFirstChunk) {
+        // Se nenhum chunk foi recebido via streaming, consulta via POST ask
         const response = await api.askTutor(lessonId, question);
         tutorMessage.text = response.answer;
         if (response.sources && response.sources.length > 0) {
           tutorMessage.sources = response.sources;
         }
+        isThinking.value = false;
+        messages.value.push(tutorMessage);
       }
     } catch {
       // Graceful contextual fallback em caso de indisponibilidade
       isThinking.value = false;
       const fallbackAnswer = generateContextualAnswer(question, lessonTitle, lessonContent);
-      const lastMsg = messages.value[messages.value.length - 1];
-      if (lastMsg && lastMsg.sender === 'tutor' && !lastMsg.text.trim()) {
-        lastMsg.text = fallbackAnswer.text;
-        lastMsg.sources = fallbackAnswer.sources;
-      } else {
-        messages.value.push({
-          id: `tutor-${Date.now()}`,
-          sender: 'tutor',
-          text: fallbackAnswer.text,
-          timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-          sources: fallbackAnswer.sources,
-        });
-      }
+      messages.value.push({
+        id: `tutor-${Date.now()}`,
+        sender: 'tutor',
+        text: fallbackAnswer.text,
+        timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+        sources: fallbackAnswer.sources,
+      });
     } finally {
       isThinking.value = false;
     }

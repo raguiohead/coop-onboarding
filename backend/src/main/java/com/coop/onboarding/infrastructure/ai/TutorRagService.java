@@ -62,9 +62,16 @@ public class TutorRagService implements AskTutorUseCase {
     public Flux<String> stream(AskTutorQuery query) {
         log.info("Streaming de resposta do Tutor Virtual na aula id={}", query.lessonId());
 
+        String cacheKey = query.lessonId() + ":" + query.question().trim().toLowerCase();
+        TutorAnswer cached = answerCache.get(cacheKey);
+        if (cached != null) {
+            log.info("Resposta do Tutor recuperada do cache para streaming na aula id={}", query.lessonId());
+            return Flux.fromIterable(List.of(cached.getAnswer()));
+        }
+
         String filterExpression = "lessonId == '" + query.lessonId() + "'";
         SearchRequest searchRequest = SearchRequest.query(query.question())
-                .withTopK(4)
+                .withTopK(2)
                 .withFilterExpression(filterExpression);
 
         List<Document> similarDocuments = Collections.emptyList();
@@ -77,7 +84,7 @@ public class TutorRagService implements AskTutorUseCase {
         if (similarDocuments.isEmpty()) {
             log.info("Nenhum chunk com lessonId={}. Buscando globalmente na base de conhecimento...", query.lessonId());
             try {
-                similarDocuments = vectorStore.similaritySearch(SearchRequest.query(query.question()).withTopK(4));
+                similarDocuments = vectorStore.similaritySearch(SearchRequest.query(query.question()).withTopK(2));
             } catch (Exception e) {
                 log.error("Erro na busca global vetorial para streaming: {}", e.getMessage());
             }
@@ -124,7 +131,7 @@ public class TutorRagService implements AskTutorUseCase {
 
         String filterExpression = "lessonId == '" + query.lessonId() + "'";
         SearchRequest searchRequest = SearchRequest.query(query.question())
-                .withTopK(4)
+                .withTopK(2)
                 .withFilterExpression(filterExpression);
 
         List<Document> similarDocuments = Collections.emptyList();
@@ -137,7 +144,7 @@ public class TutorRagService implements AskTutorUseCase {
         if (similarDocuments.isEmpty()) {
             log.info("Nenhum documento específico encontrado para aula {}. Realizando busca global na base de conhecimento...", query.lessonId());
             try {
-                similarDocuments = vectorStore.similaritySearch(SearchRequest.query(query.question()).withTopK(4));
+                similarDocuments = vectorStore.similaritySearch(SearchRequest.query(query.question()).withTopK(2));
             } catch (Exception e) {
                 log.error("Erro na busca global vetorial: {}", e.getMessage());
             }

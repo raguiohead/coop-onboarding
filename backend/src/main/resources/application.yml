@@ -41,10 +41,10 @@ spring:
       chat:
         options:
           model: llama3.2:1b
-          temperature: 0.15
-          num_predict: 384
-          top_p: 0.85
-          top_k: 40
+          temperature: 0.1
+          num_predict: 260
+          top_p: 0.8
+          top_k: 20
       embedding:
         options:
           model: nomic-embed-text

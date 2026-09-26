@@ -358,18 +358,39 @@ function handleKeyDown(e: KeyboardEvent) {
               </div>
             </div>
 
-            <!-- Thinking Indicator -->
+            <!-- Loading & Thinking Card (Fase de Carregamento Pré-Resposta) -->
             <div v-if="aiTutorStore.isThinking" class="flex gap-3 justify-start animate-fade-in">
-              <div class="w-8 h-8 rounded-xl bg-gradient-to-tr from-ai-500 to-indigo-600 text-white flex items-center justify-center shrink-0 shadow-xs">
-                <Bot class="w-4 h-4 animate-spin" />
+              <div class="w-8 h-8 rounded-xl bg-gradient-to-tr from-ai-500 to-indigo-600 text-white flex items-center justify-center shrink-0 shadow-md shadow-ai-500/25 ring-2 ring-indigo-300 animate-pulse mt-0.5">
+                <Sparkles class="w-4 h-4 text-white animate-spin" />
               </div>
-              <div class="bg-white border border-indigo-100 text-slate-700 rounded-2xl rounded-bl-xs p-3.5 shadow-xs text-xs flex items-center space-x-2">
-                <div class="flex space-x-1">
-                  <span class="w-2 h-2 bg-indigo-500 rounded-full animate-bounce [animation-delay:-0.3s]"></span>
-                  <span class="w-2 h-2 bg-indigo-500 rounded-full animate-bounce [animation-delay:-0.15s]"></span>
-                  <span class="w-2 h-2 bg-indigo-500 rounded-full animate-bounce"></span>
+              <div class="bg-white border border-indigo-200/80 text-slate-700 rounded-2xl rounded-bl-xs p-4 shadow-xs max-w-[85%] w-full sm:w-[380px] space-y-3">
+                <div class="flex items-center justify-between">
+                  <div class="flex items-center space-x-2">
+                    <div class="flex space-x-1">
+                      <span class="w-2 h-2 bg-indigo-600 rounded-full animate-bounce [animation-delay:-0.3s]"></span>
+                      <span class="w-2 h-2 bg-indigo-600 rounded-full animate-bounce [animation-delay:-0.15s]"></span>
+                      <span class="w-2 h-2 bg-indigo-600 rounded-full animate-bounce"></span>
+                    </div>
+                    <span class="text-xs font-bold text-slate-800 tracking-tight">Tutor IA analisando normativas...</span>
+                  </div>
+                  <span class="text-[10px] font-semibold text-indigo-700 bg-indigo-50 border border-indigo-200 px-2 py-0.5 rounded-full">
+                    Llama 3.2
+                  </span>
                 </div>
-                <span class="text-xs font-medium text-indigo-900">Consultando base vetorial RAG e sintetizando resposta...</span>
+
+                <!-- Animated Skeleton Lines -->
+                <div class="space-y-2 pt-1">
+                  <div class="h-3 bg-gradient-to-r from-slate-200 via-indigo-100 to-slate-200 rounded-full w-full animate-pulse"></div>
+                  <div class="h-3 bg-gradient-to-r from-slate-200 via-indigo-100 to-slate-200 rounded-full w-4/5 animate-pulse [animation-delay:0.2s]"></div>
+                  <div class="h-3 bg-gradient-to-r from-slate-200 via-indigo-100 to-slate-200 rounded-full w-3/5 animate-pulse [animation-delay:0.4s]"></div>
+                </div>
+
+                <div class="pt-1 flex items-center justify-between text-[10.5px] text-slate-400 border-t border-slate-100">
+                  <span class="flex items-center gap-1">
+                    <BookOpen class="w-3 h-3 text-indigo-500" /> Consultando base vetorial pgvector
+                  </span>
+                  <span>Gerando resposta...</span>
+                </div>
               </div>
             </div>
           </div>
