@@ -104,6 +104,13 @@ async function runTests() {
           results.tutorAi.issues.push('Tutor IA não respondeu ou não exibiu texto contendo termos da aula.');
         }
 
+        // Se o tutorial estiver aberto em primeiro plano, fecha-o
+        const activeTutorial = await page.$('button[title="Fechar tutorial"]');
+        if (activeTutorial) {
+          await activeTutorial.click();
+          await page.waitForTimeout(300);
+        }
+
         // Fecha o drawer
         const closeDrawerBtn = await page.$('button[title="Fechar drawer"]');
         if (closeDrawerBtn) await closeDrawerBtn.click();

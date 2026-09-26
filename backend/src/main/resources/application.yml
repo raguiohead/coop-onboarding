@@ -41,9 +41,9 @@ spring:
       chat:
         options:
           model: llama3.2:1b
-          temperature: 0.3
-          num_predict: 256
-          top_p: 0.9
+          temperature: 0.15
+          num_predict: 384
+          top_p: 0.85
           top_k: 40
       embedding:
         options:

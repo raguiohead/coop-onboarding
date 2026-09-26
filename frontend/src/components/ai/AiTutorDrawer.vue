@@ -15,6 +15,10 @@ import {
   RotateCcw,
   ShieldCheck,
   HelpCircle,
+  Maximize2,
+  Minimize2,
+  Copy,
+  Check,
 } from 'lucide-vue-next';
 
 const aiTutorStore = useAiTutorStore();
@@ -28,6 +32,60 @@ const md = new MarkdownIt({
 const userInput = ref('');
 const messagesContainer = ref<HTMLDivElement | null>(null);
 const expandedSources = ref<Record<string, boolean>>({});
+
+// Gerenciamento dinâmico de largura do Drawer (redimensionável pelo usuário)
+const savedWidth = localStorage.getItem('coop_tutor_drawer_width');
+const drawerWidth = ref<number>(savedWidth ? Math.min(Math.max(parseInt(savedWidth, 10), 450), 1200) : 540);
+const isDragging = ref(false);
+const copiedId = ref<string | null>(null);
+
+function toggleWide() {
+  if (drawerWidth.value >= 850) {
+    drawerWidth.value = 540;
+  } else {
+    drawerWidth.value = Math.min(window.innerWidth - 60, 920);
+  }
+  localStorage.setItem('coop_tutor_drawer_width', String(drawerWidth.value));
+}
+
+function startResize(e: MouseEvent) {
+  e.preventDefault();
+  isDragging.value = true;
+  document.body.style.userSelect = 'none';
+  document.body.style.cursor = 'ew-resize';
+  window.addEventListener('mousemove', onResize);
+  window.addEventListener('mouseup', stopResize);
+}
+
+function onResize(e: MouseEvent) {
+  if (!isDragging.value) return;
+  const newWidth = window.innerWidth - e.clientX;
+  const minWidth = 420;
+  const maxWidth = Math.min(window.innerWidth - 40, 1200);
+  drawerWidth.value = Math.max(minWidth, Math.min(maxWidth, newWidth));
+}
+
+function stopResize() {
+  if (!isDragging.value) return;
+  isDragging.value = false;
+  document.body.style.userSelect = '';
+  document.body.style.cursor = '';
+  window.removeEventListener('mousemove', onResize);
+  window.removeEventListener('mouseup', stopResize);
+  localStorage.setItem('coop_tutor_drawer_width', String(drawerWidth.value));
+}
+
+async function copyMessage(id: string, text: string) {
+  try {
+    await navigator.clipboard.writeText(text);
+    copiedId.value = id;
+    setTimeout(() => {
+      if (copiedId.value === id) copiedId.value = null;
+    }, 2000);
+  } catch (err) {
+    console.error('Erro ao copiar texto:', err);
+  }
+}
 
 const currentLesson = computed(() => trackStore.activeLesson);
 
@@ -120,9 +178,24 @@ function handleKeyDown(e: KeyboardEvent) {
     >
       <div
         v-if="aiTutorStore.isDrawerOpen"
-        class="fixed inset-y-0 right-0 z-50 flex max-w-full pl-10 w-screen max-w-md sm:max-w-lg focus:outline-hidden"
+        class="fixed inset-y-0 right-0 z-50 flex max-w-full focus:outline-hidden"
+        :style="{ width: `${drawerWidth}px`, maxWidth: '100vw' }"
       >
-        <div class="w-full flex flex-col bg-white shadow-2xl border-l border-slate-200">
+        <!-- Resizer Handle on Left Edge (Permite puxar para a esquerda) -->
+        <div
+          @mousedown="startResize"
+          class="hidden sm:flex absolute inset-y-0 left-0 -ml-2 w-4 cursor-ew-resize items-center justify-center group z-30 select-none"
+          title="Arraste para a esquerda para aumentar a largura do chat"
+        >
+          <div
+            :class="[
+              'w-1.5 h-14 rounded-full transition-all shadow-xs',
+              isDragging ? 'bg-indigo-600 scale-125 h-20' : 'bg-slate-300 group-hover:bg-indigo-500 group-hover:h-20'
+            ]"
+          ></div>
+        </div>
+
+        <div class="w-full flex flex-col bg-white shadow-2xl border-l border-slate-200 overflow-hidden relative">
           <!-- Drawer Header -->
           <div class="px-5 py-4 border-b border-slate-100 bg-gradient-to-r from-slate-900 via-slate-800 to-indigo-950 text-white flex items-center justify-between shadow-xs">
             <div class="flex items-center space-x-3">
@@ -144,6 +217,16 @@ function handleKeyDown(e: KeyboardEvent) {
             </div>
 
             <div class="flex items-center space-x-1">
+              <!-- Botão para expandir tela para a esquerda -->
+              <button
+                @click="toggleWide"
+                class="p-1.5 text-slate-300 hover:text-white rounded-lg hover:bg-white/10 transition-colors"
+                :title="drawerWidth >= 850 ? 'Reduzir para largura padrão (540px)' : 'Expandir tela para a esquerda (tela ampla)'"
+              >
+                <Minimize2 v-if="drawerWidth >= 850" class="w-4 h-4" />
+                <Maximize2 v-else class="w-4 h-4" />
+              </button>
+
               <button
                 @click="aiTutorStore.clearHistory"
                 class="p-1.5 text-slate-400 hover:text-white rounded-lg hover:bg-white/10 transition-colors"
@@ -209,14 +292,26 @@ function handleKeyDown(e: KeyboardEvent) {
                   {{ msg.text }}
                 </div>
 
-                <!-- Timestamp -->
+                <!-- Timestamp and Actions -->
                 <div
                   :class="[
                     'text-[10px] mt-2 flex items-center justify-between',
                     msg.sender === 'user' ? 'text-teal-200' : 'text-slate-400'
                   ]"
                 >
-                  <span>{{ msg.timestamp }}</span>
+                  <div class="flex items-center space-x-2">
+                    <span>{{ msg.timestamp }}</span>
+                    <button
+                      v-if="msg.sender === 'tutor' && msg.text"
+                      @click="copyMessage(msg.id, msg.text)"
+                      class="hover:text-indigo-600 transition-colors flex items-center gap-0.5 cursor-pointer ml-1"
+                      title="Copiar texto da resposta"
+                    >
+                      <Check v-if="copiedId === msg.id" class="w-3 h-3 text-emerald-600" />
+                      <Copy v-else class="w-3 h-3" />
+                      <span v-if="copiedId === msg.id" class="text-emerald-600 font-semibold text-[9px]">Copiado!</span>
+                    </button>
+                  </div>
                   <span v-if="msg.sender === 'tutor'" class="flex items-center gap-1 text-ai-600 font-semibold">
                     <Sparkles class="w-2.5 h-2.5" /> IA Verificada
                   </span>
@@ -321,3 +416,61 @@ function handleKeyDown(e: KeyboardEvent) {
     </transition>
   </div>
 </template>
+
+<style scoped>
+.markdown-body :deep(p) {
+  margin-bottom: 0.65rem;
+  line-height: 1.6;
+}
+.markdown-body :deep(p:last-child) {
+  margin-bottom: 0;
+}
+.markdown-body :deep(strong) {
+  font-weight: 700;
+  color: #0f172a;
+}
+.markdown-body :deep(ul) {
+  list-style-type: disc;
+  padding-left: 1.25rem;
+  margin-bottom: 0.65rem;
+}
+.markdown-body :deep(ol) {
+  list-style-type: decimal;
+  padding-left: 1.25rem;
+  margin-bottom: 0.65rem;
+}
+.markdown-body :deep(li) {
+  margin-bottom: 0.25rem;
+  line-height: 1.5;
+}
+.markdown-body :deep(h1),
+.markdown-body :deep(h2),
+.markdown-body :deep(h3),
+.markdown-body :deep(h4) {
+  font-weight: 700;
+  color: #0f172a;
+  margin-top: 0.75rem;
+  margin-bottom: 0.35rem;
+  font-size: 0.95rem;
+}
+.markdown-body :deep(blockquote) {
+  border-left: 3px solid #6366f1;
+  padding-left: 0.75rem;
+  font-style: italic;
+  color: #475569;
+  background-color: #f8fafc;
+  padding-top: 0.25rem;
+  padding-bottom: 0.25rem;
+  border-radius: 0 0.375rem 0.375rem 0;
+  margin: 0.5rem 0;
+}
+.markdown-body :deep(code) {
+  background-color: #f1f5f9;
+  color: #4338ca;
+  padding: 0.125rem 0.375rem;
+  border-radius: 0.25rem;
+  font-size: 0.85em;
+  font-family: monospace;
+}
+</style>
+

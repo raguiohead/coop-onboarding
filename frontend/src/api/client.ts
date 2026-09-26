@@ -94,21 +94,36 @@ class ApiClient {
     const reader = res.body.getReader();
     const decoder = new TextDecoder('utf-8');
     let fullText = '';
+    let buffer = '';
 
     try {
       while (true) {
         const { done, value } = await reader.read();
         if (done) break;
-        const chunk = decoder.decode(value, { stream: true });
+        buffer += decoder.decode(value, { stream: true });
         
-        // Remove prefixo "data:" de eventos SSE caso o Spring WebFlux / SseEmitter os envie
-        const lines = chunk.split('\n');
+        const lines = buffer.split('\n');
+        // Mantém a última linha incompleta no buffer
+        buffer = lines.pop() ?? '';
+
         for (const line of lines) {
-          const cleaned = line.startsWith('data:') ? line.substring(5).trim() : line;
-          if (cleaned) {
-            fullText += cleaned;
-            onChunk(cleaned);
+          if (line.startsWith('data:')) {
+            // No Spring WebFlux, o chunk bruto vem imediatamente após 'data:'
+            const rawChunk = line.substring(5);
+            if (rawChunk) {
+              fullText += rawChunk;
+              onChunk(rawChunk);
+            }
           }
+        }
+      }
+
+      // Processa qualquer resíduo no buffer final
+      if (buffer.startsWith('data:')) {
+        const rawChunk = buffer.substring(5);
+        if (rawChunk) {
+          fullText += rawChunk;
+          onChunk(rawChunk);
         }
       }
     } finally {
