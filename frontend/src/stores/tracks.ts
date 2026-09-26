@@ -1,7 +1,15 @@
 import { defineStore } from 'pinia';
-import { ref, computed } from 'vue';
+import { ref, computed, watch } from 'vue';
 import type { Track, Module, Lesson } from '@/types';
 import { api } from '@/api/client';
+import { useAuthStore } from './auth';
+
+const initialCompletionsByUser: Record<string, string[]> = {
+  // Ana Carolina Silva (Alta conclusão: 3 lições concluídas na Trilha Principal)
+  '11111111-1111-1111-1111-111111111111': ['les-101-1', 'les-101-2', 'les-102-1'],
+  // Carlos Souza (Em início de jornada: 1 lição concluída)
+  '44444444-4444-4444-4444-444444444444': ['les-101-1'],
+};
 
 export const mockTracks: Track[] = [
   {
@@ -256,10 +264,37 @@ export const useTrackStore = defineStore('tracks', () => {
   const activeTrackId = ref<string | null>(mockTracks[0].id);
   const activeLessonId = ref<string | null>(mockTracks[0].modules[0].lessons[0].id);
 
-  // Initialize completed lessons from localStorage or mock defaults
-  const savedCompletions = localStorage.getItem('coop_completed_lessons');
-  const completedLessonIds = ref<Set<string>>(
-    savedCompletions ? new Set(JSON.parse(savedCompletions)) : new Set(['les-101-1'])
+  const authStore = useAuthStore();
+  const completedLessonIds = ref<Set<string>>(new Set());
+
+  function loadUserProgress(targetUserId?: string) {
+    const id = targetUserId || authStore.currentUser?.id || '11111111-1111-1111-1111-111111111111';
+    const key = `coop_completed_lessons_${id}`;
+    const saved = localStorage.getItem(key);
+    if (saved) {
+      try {
+        completedLessonIds.value = new Set(JSON.parse(saved));
+        return;
+      } catch (e) {
+        console.error('Erro ao ler progresso do usuário:', e);
+      }
+    }
+    const defaults = initialCompletionsByUser[id] || (authStore.isColaborador ? ['les-101-1'] : []);
+    completedLessonIds.value = new Set(defaults);
+    localStorage.setItem(key, JSON.stringify(Array.from(completedLessonIds.value)));
+  }
+
+  // Carrega o progresso do usuário ativo
+  loadUserProgress();
+
+  // Observa troca de perfil do usuário e recarrega seu progresso exclusivo
+  watch(
+    () => authStore.currentUser?.id,
+    (newId) => {
+      if (newId) {
+        loadUserProgress(newId);
+      }
+    }
   );
 
   const activeTrack = computed(() => {
@@ -319,12 +354,14 @@ export const useTrackStore = defineStore('tracks', () => {
     } else {
       completedLessonIds.value.add(lessonId);
     }
-    localStorage.setItem('coop_completed_lessons', JSON.stringify(Array.from(completedLessonIds.value)));
+    const currentId = authStore.currentUser?.id || 'default';
+    localStorage.setItem(`coop_completed_lessons_${currentId}`, JSON.stringify(Array.from(completedLessonIds.value)));
   }
 
   function markLessonComplete(lessonId: string) {
     completedLessonIds.value.add(lessonId);
-    localStorage.setItem('coop_completed_lessons', JSON.stringify(Array.from(completedLessonIds.value)));
+    const currentId = authStore.currentUser?.id || 'default';
+    localStorage.setItem(`coop_completed_lessons_${currentId}`, JSON.stringify(Array.from(completedLessonIds.value)));
   }
 
   function selectLesson(trackId: string, lessonId: string) {
@@ -370,6 +407,7 @@ export const useTrackStore = defineStore('tracks', () => {
     toggleLessonCompletion,
     markLessonComplete,
     selectLesson,
+    loadUserProgress,
     fetchTracks,
   };
 });

@@ -1,7 +1,8 @@
 <script setup lang="ts">
-import { ref } from 'vue';
+import { ref, computed } from 'vue';
 import { useAuthStore } from '@/stores/auth';
 import { useAiTutorStore } from '@/stores/aiTutor';
+import { useQuizStore, type QuizItem } from '@/stores/quizzes';
 import QuizGeneratorModal from '@/components/ai/QuizGeneratorModal.vue';
 import {
   HelpCircle,
@@ -16,179 +17,45 @@ import {
   BookOpen,
   ArrowRight,
   TrendingUp,
+  Eye,
+  ShieldCheck,
 } from 'lucide-vue-next';
-
-interface Question {
-  id: number;
-  text: string;
-  options: string[];
-  correctIndex: number;
-  explanation: string;
-}
-
-interface QuizItem {
-  id: string;
-  title: string;
-  category: string;
-  difficulty: 'Iniciante' | 'Intermediário' | 'Avançado';
-  questionsCount: number;
-  estimatedMinutes: number;
-  status: 'PENDING' | 'COMPLETED';
-  score?: number;
-  questions: Question[];
-}
 
 const authStore = useAuthStore();
 const aiTutorStore = useAiTutorStore();
+const quizStore = useQuizStore();
 
 const isQuizModalOpen = ref(false);
-const activeQuiz = ref<QuizItem | null>(null);
+const activeQuiz = ref<any | null>(null);
 const currentQuestionIndex = ref(0);
 const selectedAnswers = ref<Record<number, number>>({});
 const showResults = ref(false);
 
-const quizzesList = ref<QuizItem[]>([
-  {
-    id: 'quiz-01',
-    title: 'Princípios e Governança do Modelo Cooperativo',
-    category: 'Cultura Cooperativa',
-    difficulty: 'Iniciante',
-    questionsCount: 3,
-    estimatedMinutes: 5,
-    status: 'COMPLETED',
-    score: 100,
-    questions: [
-      {
-        id: 1,
-        text: 'Qual a principal diferença entre a distribuição de sobras em uma cooperativa e o dividendo de um banco tradicional?',
-        options: [
-          'Em bancos tradicionais, os dividendos vão para os associados proporcionalmente ao uso.',
-          'Em cooperativas, as sobras são distribuídas aos cooperados na proporção de suas operações, enquanto em bancos o lucro remunera o capital dos acionistas.',
-          'Cooperativas não geram resultados positivos, operando sempre em déficit controlado.',
-          'Bancos e cooperativas utilizam exatamente a mesma sistemática de rateio de lucros.',
-        ],
-        correctIndex: 1,
-        explanation: 'Nas sociedades cooperativas não há busca pelo lucro em benefício de acionistas, mas a geração de Sobras que retornam aos cooperados proporcionalmente à movimentação efetuada.',
-      },
-      {
-        id: 2,
-        text: 'Qual o princípio fundamental de votação na Assembleia Geral da nossa cooperativa?',
-        options: [
-          'Um cooperado, um voto — independentemente da quantidade de cotas de capital.',
-          'Voto ponderado pelo saldo da conta corrente.',
-          'Apenas cooperados com mais de 10 anos de vínculo possuem direito a voto.',
-          'Cada R$ 1.000,00 em cotas concede um voto adicional na assembleia.',
-        ],
-        correctIndex: 0,
-        explanation: 'O 2º Princípio do Cooperativismo consagra a Gestão Democrática pelos membros: cada cooperado tem poder de voto igualitário nas assembleias.',
-      },
-      {
-        id: 3,
-        text: 'Qual órgão estatutário atua na fiscalização contínua e autônoma da legalidade e contas da cooperativa?',
-        options: [
-          'Conselho Fiscal, eleito diretamente pela Assembleia Geral.',
-          'Gerência de Recursos Humanos.',
-          'Comitê de Marketing e Comunicação.',
-          'O banco central regional local.',
-        ],
-        correctIndex: 0,
-        explanation: 'O Conselho Fiscal é órgão estatutário independente composto por membros eleitos pelos próprios cooperados para fiscalizar a administração e contas.',
-      },
-    ],
-  },
-  {
-    id: 'quiz-02',
-    title: 'Prevenção à Lavagem de Dinheiro (PLD) e Sigilo Bancário',
-    category: 'Compliance & Riscos',
-    difficulty: 'Intermediário',
-    questionsCount: 3,
-    estimatedMinutes: 6,
-    status: 'PENDING',
-    questions: [
-      {
-        id: 1,
-        text: 'Quais são as três fases canônicas do processo de Lavagem de Dinheiro reconhecidas pela Lei 9.613/1998?',
-        options: [
-          'Investigação, Julgamento e Liquidação.',
-          'Colocação (Placement), Ocultação (Layering) e Integração (Integration).',
-          'Arrecadação, Tributação e Desoneração.',
-          'Abordagem, Notificação e Repatriação.',
-        ],
-        correctIndex: 1,
-        explanation: 'A teoria e a legislação internacional tipificam as fases em: Colocação do recurso ilícito no sistema, Ocultação por camadas complexas de transações e Integração à economia formal.',
-      },
-      {
-        id: 2,
-        text: 'Em relação ao Sigilo Bancário (Lei Complementar 105/2001), qual a conduta esperada do colaborador?',
-        options: [
-          'Consultar saldos e movimentações de parentes por curiosidade pessoal.',
-          'Manter estrita confidencialidade das operações ativas e passivas dos cooperados, acessando informações estritamente por dever de ofício.',
-          'Compartilhar extratos de cooperados em aplicativos de mensagens particulares para agilizar atendimentos.',
-          'Divulgar dados cadastrais sempre que solicitado verbalmente por terceiros.',
-        ],
-        correctIndex: 1,
-        explanation: 'O dever de sigilo bancário é indeclinável e o acesso a dados financeiros de cooperados é restrito à finalidade funcional estrita sob pena de demissão e sanção penal.',
-      },
-      {
-        id: 3,
-        text: 'Qual instituição federal deve ser comunicada em caso de operações atípicas sem causa econômica ou jurídica aparente?',
-        options: [
-          'COAF (Conselho de Controle de Atividades Financeiras).',
-          'Secretaria Municipal de Finanças.',
-          'Conselho Regional de Administração.',
-          'Superintendência de Proteção ao Consumidor.',
-        ],
-        correctIndex: 0,
-        explanation: 'As instituições do Sistema Financeiro Nacional são obrigadas por lei a comunicar ao COAF transações que suscitem fundadas suspeitas de lavagem de dinheiro.',
-      },
-    ],
-  },
-  {
-    id: 'quiz-03',
-    title: 'Produtos Cooperativos & Crédito Consciente',
-    category: 'Negócios & Atendimento',
-    difficulty: 'Iniciante',
-    questionsCount: 2,
-    estimatedMinutes: 4,
-    status: 'PENDING',
-    questions: [
-      {
-        id: 1,
-        text: 'O que diferencia a concessão de crédito em uma cooperativa daquela praticada pelo sistema bancário tradicional?',
-        options: [
-          'O foco na sustentabilidade financeira do associado, taxas justas e retorno das sobras geradas.',
-          'Cooperativas não cobram juros de nenhuma modalidade de financiamento.',
-          'Crédito concedido sem nenhuma análise cadastral ou comprovação de renda.',
-          'O crédito é restrito apenas aos diretores da instituição.',
-        ],
-        correctIndex: 0,
-        explanation: 'A cooperativa visa apoiar o crescimento econômico sustentável do cooperado, praticando taxas justas e devolvendo parte dos juros pagos através das sobras anuais.',
-      },
-      {
-        id: 2,
-        text: 'O que é a Cota Capital do associado?',
-        options: [
-          'A participação societária do cooperado no patrimônio da instituição, constituindo sua copropriedade.',
-          'Uma taxa mensal cobrada a fundo perdido pelo uso da agência.',
-          'Um imposto retido na fonte pela Receita Federal.',
-          'Uma garantia compulsória exigida exclusivamente em caso de inadimplência.',
-        ],
-        correctIndex: 0,
-        explanation: 'A cota capital é o aporte inicial que transforma o cliente em associado e cotista coproprietário da cooperativa de crédito.',
-      },
-    ],
-  },
-]);
+// Modo de visualização de gabarito para gestor
+const isInspectionMode = ref(false);
 
-function startQuiz(quiz: QuizItem) {
+function startQuiz(quiz: any) {
+  if (authStore.isGestor || authStore.isAdmin) {
+    // Gestores entram direto em modo de inspeção pedagógica (apenas visualização)
+    inspectQuiz(quiz);
+    return;
+  }
   activeQuiz.value = quiz;
+  isInspectionMode.value = false;
   currentQuestionIndex.value = 0;
-  selectedAnswers.value = {};
+  selectedAnswers.value = quiz.answers ? { ...quiz.answers } : {};
+  showResults.value = quiz.status === 'COMPLETED';
+}
+
+function inspectQuiz(quiz: any) {
+  activeQuiz.value = quiz;
+  isInspectionMode.value = true;
+  currentQuestionIndex.value = 0;
   showResults.value = false;
 }
 
 function selectAnswer(questionIdx: number, optionIdx: number) {
-  if (showResults.value) return;
+  if (showResults.value || isInspectionMode.value) return;
   selectedAnswers.value[questionIdx] = optionIdx;
 }
 
@@ -196,7 +63,7 @@ function nextQuestion() {
   if (!activeQuiz.value) return;
   if (currentQuestionIndex.value < activeQuiz.value.questions.length - 1) {
     currentQuestionIndex.value++;
-  } else {
+  } else if (!isInspectionMode.value) {
     finishQuiz();
   }
 }
@@ -208,24 +75,22 @@ function previousQuestion() {
 }
 
 function finishQuiz() {
-  if (!activeQuiz.value) return;
+  if (!activeQuiz.value || isInspectionMode.value) return;
   let correctCount = 0;
-  activeQuiz.value.questions.forEach((q, idx) => {
+  activeQuiz.value.questions.forEach((q: any, idx: number) => {
     if (selectedAnswers.value[idx] === q.correctIndex) {
       correctCount++;
     }
   });
 
   const percentage = Math.round((correctCount / activeQuiz.value.questions.length) * 100);
-  activeQuiz.value.score = percentage;
-  activeQuiz.value.status = 'COMPLETED';
+  quizStore.saveQuizAttempt(activeQuiz.value.id, percentage, selectedAnswers.value);
   showResults.value = true;
 }
 
 function resetActiveQuiz() {
-  if (activeQuiz.value) {
-    activeQuiz.value.status = 'PENDING';
-    activeQuiz.value.score = undefined;
+  if (activeQuiz.value && !isInspectionMode.value) {
+    quizStore.resetQuizAttempt(activeQuiz.value.id);
     selectedAnswers.value = {};
     currentQuestionIndex.value = 0;
     showResults.value = false;
@@ -234,6 +99,7 @@ function resetActiveQuiz() {
 
 function closeQuizRunner() {
   activeQuiz.value = null;
+  isInspectionMode.value = false;
   showResults.value = false;
   selectedAnswers.value = {};
   currentQuestionIndex.value = 0;
@@ -247,13 +113,19 @@ function closeQuizRunner() {
       <div>
         <div class="inline-flex items-center space-x-2 px-2.5 py-1 rounded-md text-[11px] font-bold bg-indigo-500/20 text-indigo-300 border border-indigo-400/30 uppercase tracking-wider mb-2">
           <Award class="w-3.5 h-3.5" />
-          <span>Avaliações & Fixação Pedagógica</span>
+          <span v-if="authStore.isGestor">Banco Pedagógico de Avaliações (Modo Gestor)</span>
+          <span v-else>Avaliações & Fixação Pedagógica</span>
         </div>
         <h1 class="text-2xl sm:text-3xl font-extrabold tracking-tight font-sans">
-          Central de Quizzes & Simulados
+          {{ authStore.isGestor ? 'Banco de Quizzes da Turma' : 'Central de Quizzes & Simulados' }}
         </h1>
         <p class="text-xs sm:text-sm text-slate-300 mt-1 max-w-2xl">
-          Teste seus conhecimentos nos pilares cooperativistas, diretrizes normativas e políticas de crédito com justificativas pedagógicas detalhadas.
+          <span v-if="authStore.isGestor">
+            Supervisão pedagógica dos simulados da turma. Como gestor, você visualiza todas as questões e gabaritos comentados com fundamentação regulatória para orientar sua equipe. A adesão e notas são exclusivas para os colaboradores.
+          </span>
+          <span v-else>
+            Teste seus conhecimentos nos pilares cooperativistas, diretrizes normativas e políticas de crédito com justificativas pedagógicas detalhadas.
+          </span>
         </p>
       </div>
 
@@ -269,16 +141,16 @@ function closeQuizRunner() {
       </div>
     </div>
 
-    <!-- Metrics Cards -->
-    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+    <!-- Metrics Cards (Diferenciados por Papel) -->
+    <div v-if="authStore.isColaborador" class="grid grid-cols-1 sm:grid-cols-3 gap-4">
       <div class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-xs flex items-center space-x-4">
         <div class="w-12 h-12 rounded-xl bg-teal-50 border border-teal-100 flex items-center justify-center text-teal-600">
           <CheckCircle2 class="w-6 h-6" />
         </div>
         <div>
-          <p class="text-xs text-slate-500 font-medium">Quizzes Concluídos</p>
+          <p class="text-xs text-slate-500 font-medium">Seus Quizzes Concluídos</p>
           <p class="text-xl font-extrabold text-slate-900 mt-0.5">
-            {{ quizzesList.filter(q => q.status === 'COMPLETED').length }} de {{ quizzesList.length }}
+            {{ quizStore.completedQuizzesCount }} de {{ quizStore.quizzes.length }}
           </p>
         </div>
       </div>
@@ -288,8 +160,10 @@ function closeQuizRunner() {
           <TrendingUp class="w-6 h-6" />
         </div>
         <div>
-          <p class="text-xs text-slate-500 font-medium">Média Geral de Acertos</p>
-          <p class="text-xl font-extrabold text-indigo-700 mt-0.5">100%</p>
+          <p class="text-xs text-slate-500 font-medium">Sua Média de Acertos</p>
+          <p class="text-xl font-extrabold text-indigo-700 mt-0.5">
+            {{ quizStore.averageQuizScore > 0 ? `${quizStore.averageQuizScore}%` : 'Pendente' }}
+          </p>
         </div>
       </div>
 
@@ -300,40 +174,160 @@ function closeQuizRunner() {
         <div>
           <p class="text-xs text-slate-500 font-medium">Pendentes na sua Trilha</p>
           <p class="text-xl font-extrabold text-amber-700 mt-0.5">
-            {{ quizzesList.filter(q => q.status === 'PENDING').length }} avaliações
+            {{ quizStore.quizzes.length - quizStore.completedQuizzesCount }} avaliações
           </p>
         </div>
       </div>
     </div>
 
-    <!-- Active Quiz Runner Modal / Inline View -->
+    <!-- Metrics Cards para Gestor / Admin -->
+    <div v-else class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+      <div class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-xs flex items-center space-x-4">
+        <div class="w-12 h-12 rounded-xl bg-indigo-50 border border-indigo-100 flex items-center justify-center text-indigo-600">
+          <BookOpen class="w-6 h-6" />
+        </div>
+        <div>
+          <p class="text-xs text-slate-500 font-medium">Quizzes no Banco</p>
+          <p class="text-xl font-extrabold text-slate-900 mt-0.5">
+            {{ quizStore.quizzes.length }} Simulados
+          </p>
+        </div>
+      </div>
+
+      <div class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-xs flex items-center space-x-4">
+        <div class="w-12 h-12 rounded-xl bg-teal-50 border border-teal-100 flex items-center justify-center text-teal-600">
+          <ShieldCheck class="w-6 h-6" />
+        </div>
+        <div>
+          <p class="text-xs text-slate-500 font-medium">Aproveitamento Médio da Turma</p>
+          <p class="text-xl font-extrabold text-teal-700 mt-0.5">92%</p>
+        </div>
+      </div>
+
+      <div class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-xs flex items-center space-x-4">
+        <div class="w-12 h-12 rounded-xl bg-indigo-50 border border-indigo-100 flex items-center justify-center text-indigo-600">
+          <Award class="w-6 h-6" />
+        </div>
+        <div>
+          <p class="text-xs text-slate-500 font-medium">Papel Operacional</p>
+          <p class="text-xl font-extrabold text-indigo-900 mt-0.5">Supervisão Pedagógica</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Active Quiz Runner / Inspection View -->
     <div v-if="activeQuiz" class="bg-white rounded-3xl border border-indigo-100 shadow-xl p-6 sm:p-8 animate-fade-in">
       <div class="flex items-center justify-between pb-4 border-b border-slate-100 mb-6">
         <div>
-          <span class="text-[11px] font-bold uppercase tracking-wider text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded border border-indigo-100">
-            {{ activeQuiz.category }} · Questão {{ currentQuestionIndex + 1 }} de {{ activeQuiz.questions.length }}
-          </span>
+          <div class="flex items-center space-x-2">
+            <span class="text-[11px] font-bold uppercase tracking-wider text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded border border-indigo-100">
+              {{ activeQuiz.category }} · Questão {{ currentQuestionIndex + 1 }} de {{ activeQuiz.questions.length }}
+            </span>
+            <span v-if="isInspectionMode" class="text-[11px] font-bold text-amber-700 bg-amber-50 px-2 py-0.5 rounded border border-amber-200 uppercase">
+              Modo Consulta Pedagógica (Gestor)
+            </span>
+          </div>
           <h2 class="text-lg sm:text-xl font-bold text-slate-900 mt-1">
             {{ activeQuiz.title }}
           </h2>
         </div>
         <button
           @click="closeQuizRunner"
-          class="text-xs text-slate-400 hover:text-slate-600 font-medium px-3 py-1.5 rounded-lg hover:bg-slate-100 transition-colors"
+          class="text-xs text-slate-500 hover:text-slate-800 font-bold px-3 py-1.5 rounded-xl hover:bg-slate-100 transition-colors cursor-pointer"
         >
           Voltar para Lista
         </button>
       </div>
 
-      <!-- If quiz is in progress -->
-      <div v-if="!showResults" class="space-y-6">
+      <!-- Modo Inspeção para Gestor: Exibe Questão com Gabarito e Justificativa -->
+      <div v-if="isInspectionMode" class="space-y-6">
+        <div class="p-4 sm:p-5 rounded-2xl bg-indigo-50/50 border border-indigo-100">
+          <p class="text-xs font-bold text-indigo-700 uppercase tracking-wide mb-1">Enunciado da Questão:</p>
+          <p class="text-sm sm:text-base font-semibold text-slate-900 leading-relaxed">
+            {{ activeQuiz.questions[currentQuestionIndex].text }}
+          </p>
+        </div>
+
+        <div class="space-y-3">
+          <div
+            v-for="(option, optIdx) in activeQuiz.questions[currentQuestionIndex].options"
+            :key="optIdx"
+            :class="[
+              'p-4 rounded-2xl border text-xs sm:text-sm font-medium transition-all flex items-start space-x-3',
+              optIdx === activeQuiz.questions[currentQuestionIndex].correctIndex
+                ? 'bg-emerald-50 border-emerald-500 text-emerald-950 font-bold ring-2 ring-emerald-400/20'
+                : 'bg-white border-slate-200 text-slate-600 opacity-75'
+            ]"
+          >
+            <span
+              :class="[
+                'w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold shrink-0 mt-0.5',
+                optIdx === activeQuiz.questions[currentQuestionIndex].correctIndex
+                  ? 'bg-emerald-600 text-white'
+                  : 'bg-slate-100 text-slate-500'
+              ]"
+            >
+              {{ String.fromCharCode(65 + optIdx) }}
+            </span>
+            <div class="flex-1">
+              <span>{{ option }}</span>
+              <span v-if="optIdx === activeQuiz.questions[currentQuestionIndex].correctIndex" class="ml-2 text-xs text-emerald-700 font-bold">
+                (Gabarito Correto)
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Explicação Pedagógica e Legal -->
+        <div class="p-4 rounded-2xl bg-emerald-50/80 border border-emerald-200 text-xs sm:text-sm text-emerald-950 space-y-1">
+          <p class="font-bold flex items-center gap-1.5 text-emerald-900">
+            <CheckCircle2 class="w-4 h-4 text-emerald-600" /> Fundamentação Regulatória & Doutrinária:
+          </p>
+          <p class="leading-relaxed">
+            {{ activeQuiz.questions[currentQuestionIndex].explanation }}
+          </p>
+        </div>
+
+        <!-- Controles de Navegação do Gestor -->
+        <div class="flex items-center justify-between pt-4 border-t border-slate-100">
+          <button
+            @click="previousQuestion"
+            :disabled="currentQuestionIndex === 0"
+            class="px-4 py-2 rounded-xl text-xs font-bold border border-slate-200 text-slate-700 disabled:opacity-40 disabled:cursor-not-allowed hover:bg-slate-50 transition-colors"
+          >
+            Questão Anterior
+          </button>
+
+          <span class="text-xs text-slate-500 font-medium">
+            Questão {{ currentQuestionIndex + 1 }} de {{ activeQuiz.questions.length }}
+          </span>
+
+          <button
+            v-if="currentQuestionIndex < activeQuiz.questions.length - 1"
+            @click="nextQuestion"
+            class="px-4 py-2 rounded-xl text-xs font-bold bg-indigo-600 hover:bg-indigo-700 text-white transition-colors"
+          >
+            Próxima Questão
+          </button>
+          <button
+            v-else
+            @click="closeQuizRunner"
+            class="px-4 py-2 rounded-xl text-xs font-bold bg-slate-900 hover:bg-slate-800 text-white transition-colors"
+          >
+            Concluir Inspeção
+          </button>
+        </div>
+      </div>
+
+      <!-- Modo Colaborador: Realização do Quiz -->
+      <div v-else-if="!showResults" class="space-y-6">
         <div class="p-4 sm:p-5 rounded-2xl bg-slate-50 border border-slate-200/80">
           <p class="text-sm sm:text-base font-semibold text-slate-900 leading-relaxed">
             {{ activeQuiz.questions[currentQuestionIndex].text }}
           </p>
         </div>
 
-        <!-- Options list -->
+        <!-- Lista de Alternativas -->
         <div class="space-y-3">
           <button
             v-for="(option, optIdx) in activeQuiz.questions[currentQuestionIndex].options"
@@ -348,10 +342,10 @@ function closeQuizRunner() {
           >
             <span
               :class="[
-                'w-6 h-6 rounded-lg text-xs font-bold flex items-center justify-center shrink-0 border mt-0.5',
+                'w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold shrink-0 mt-0.5',
                 selectedAnswers[currentQuestionIndex] === optIdx
-                  ? 'bg-indigo-600 text-white border-indigo-600'
-                  : 'bg-slate-100 text-slate-600 border-slate-200'
+                  ? 'bg-indigo-600 text-white'
+                  : 'bg-slate-100 text-slate-600'
               ]"
             >
               {{ String.fromCharCode(65 + optIdx) }}
@@ -360,100 +354,103 @@ function closeQuizRunner() {
           </button>
         </div>
 
-        <!-- Navigation Buttons -->
+        <!-- Controles de Navegação -->
         <div class="flex items-center justify-between pt-4 border-t border-slate-100">
           <button
             @click="previousQuestion"
             :disabled="currentQuestionIndex === 0"
-            class="px-4 py-2 rounded-xl text-xs font-bold border border-slate-200 text-slate-600 hover:bg-slate-50 disabled:opacity-30 disabled:pointer-events-none transition-colors"
+            class="px-4 py-2 rounded-xl text-xs font-bold border border-slate-200 text-slate-700 disabled:opacity-40 disabled:cursor-not-allowed hover:bg-slate-50 transition-colors cursor-pointer"
           >
-            Questão Anterior
+            Anterior
           </button>
+
+          <span class="text-xs text-slate-400 font-medium">
+            Questão {{ currentQuestionIndex + 1 }} de {{ activeQuiz.questions.length }}
+          </span>
 
           <button
             @click="nextQuestion"
             :disabled="selectedAnswers[currentQuestionIndex] === undefined"
-            class="px-5 py-2.5 rounded-xl text-xs sm:text-sm font-bold bg-gradient-to-r from-brand-600 to-brand-800 hover:from-brand-700 hover:to-brand-900 text-white shadow-sm disabled:opacity-40 disabled:pointer-events-none transition-all cursor-pointer flex items-center space-x-1.5"
+            class="px-5 py-2.5 rounded-xl text-xs font-bold bg-indigo-600 hover:bg-indigo-700 text-white shadow-md shadow-indigo-600/20 disabled:opacity-40 disabled:cursor-not-allowed transition-all cursor-pointer"
           >
-            <span>{{ currentQuestionIndex === activeQuiz.questions.length - 1 ? 'Concluir Avaliação' : 'Próxima Questão' }}</span>
-            <ArrowRight class="w-4 h-4" />
+            {{ currentQuestionIndex < activeQuiz.questions.length - 1 ? 'Próxima Questão' : 'Finalizar Simulado' }}
           </button>
         </div>
       </div>
 
-      <!-- Quiz Completed / Results View -->
-      <div v-else class="space-y-8 animate-fade-in">
-        <!-- Results Score Header -->
-        <div class="text-center p-8 rounded-3xl bg-gradient-to-br from-indigo-50 to-brand-50 border border-indigo-100">
-          <div class="w-16 h-16 mx-auto rounded-2xl bg-white shadow-md flex items-center justify-center text-indigo-600 mb-3 border border-indigo-100">
-            <Award class="w-9 h-9" />
+      <!-- Tela de Resultados do Colaborador -->
+      <div v-else class="space-y-6">
+        <div class="p-6 sm:p-8 rounded-3xl bg-gradient-to-br from-indigo-50 via-white to-teal-50 border border-indigo-100 text-center space-y-3">
+          <div class="w-16 h-16 mx-auto rounded-2xl bg-indigo-600 text-white flex items-center justify-center shadow-lg shadow-indigo-600/25">
+            <Award class="w-8 h-8" />
           </div>
-          <h3 class="text-xl sm:text-2xl font-extrabold text-slate-900">
-            Avaliação Concluída com Sucesso!
+          <h3 class="text-xl sm:text-2xl font-black text-slate-900">
+            Simulado Concluído com Sucesso!
           </h3>
-          <p class="text-xs sm:text-sm text-slate-600 mt-1">
-            Seu desempenho foi registrado no histórico do seu plano individual de capacitação.
+          <p class="text-xs sm:text-sm text-slate-600 max-w-md mx-auto">
+            Sua nota foi computada no plano de capacitação da cooperativa. Confira abaixo o gabarito comentado.
           </p>
 
-          <div class="inline-flex items-center space-x-2 mt-4 px-4 py-2 rounded-2xl bg-white border border-indigo-200 shadow-xs">
-            <span class="text-xs font-bold text-slate-500 uppercase tracking-wider">Aproveitamento:</span>
-            <span class="text-2xl font-black text-indigo-700">{{ activeQuiz.score }}%</span>
+          <div class="pt-4 flex items-center justify-center space-x-6 text-sm">
+            <div>
+              <p class="text-xs text-slate-400 uppercase font-bold">Aproveitamento</p>
+              <p class="text-3xl font-black text-indigo-700">{{ activeQuiz.score ?? 100 }}%</p>
+            </div>
+            <div class="w-px h-10 bg-slate-200"></div>
+            <div>
+              <p class="text-xs text-slate-400 uppercase font-bold">Status</p>
+              <p class="text-sm font-bold text-teal-600 flex items-center gap-1 mt-1">
+                <CheckCircle2 class="w-4 h-4" /> Qualificado
+              </p>
+            </div>
           </div>
         </div>
 
-        <!-- Detailed Explanations / Gabarito -->
+        <!-- Gabarito Comentado -->
         <div class="space-y-4">
-          <h4 class="text-sm font-bold text-slate-800 flex items-center gap-2">
-            <BookOpen class="w-4 h-4 text-indigo-600" /> Gabarito Comentado & Justificativas Normativas
+          <h4 class="text-xs font-bold uppercase tracking-wider text-slate-400">
+            Gabarito & Fundamentação Normativa
           </h4>
 
           <div
-            v-for="(q, qIdx) in activeQuiz.questions"
-            :key="qIdx"
-            class="p-5 rounded-2xl border bg-white shadow-xs space-y-3"
-            :class="selectedAnswers[qIdx] === q.correctIndex ? 'border-emerald-200 bg-emerald-50/20' : 'border-rose-200 bg-rose-50/20'"
+            v-for="(q, idx) in activeQuiz.questions"
+            :key="q.id"
+            class="p-4 sm:p-5 rounded-2xl border space-y-3"
+            :class="selectedAnswers[idx] === q.correctIndex ? 'bg-emerald-50/40 border-emerald-200' : 'bg-rose-50/40 border-rose-200'"
           >
             <div class="flex items-start justify-between gap-2">
               <p class="text-xs sm:text-sm font-bold text-slate-900">
-                {{ qIdx + 1 }}. {{ q.text }}
+                Questão {{ idx + 1 }}: {{ q.text }}
               </p>
               <span
-                :class="[
-                  'text-[10px] font-bold px-2 py-0.5 rounded uppercase shrink-0',
-                  selectedAnswers[qIdx] === q.correctIndex
-                    ? 'bg-emerald-100 text-emerald-800 border border-emerald-200'
-                    : 'bg-rose-100 text-rose-800 border border-rose-200'
-                ]"
+                class="shrink-0 text-[10px] font-bold px-2 py-0.5 rounded border uppercase"
+                :class="selectedAnswers[idx] === q.correctIndex ? 'bg-emerald-100 text-emerald-800 border-emerald-300' : 'bg-rose-100 text-rose-800 border-rose-300'"
               >
-                {{ selectedAnswers[qIdx] === q.correctIndex ? 'Correto' : 'Incorreto' }}
+                {{ selectedAnswers[idx] === q.correctIndex ? 'Acertou' : 'Errou' }}
               </span>
             </div>
 
-            <!-- Option details -->
-            <div class="text-xs space-y-1 text-slate-600 pl-2 border-l-2 border-slate-200">
-              <p>
-                <strong class="text-slate-800">Sua resposta:</strong>
-                {{ q.options[selectedAnswers[qIdx]] }}
+            <div class="text-xs space-y-1">
+              <p class="text-slate-600">
+                <strong>Sua Resposta:</strong> {{ q.options[selectedAnswers[idx]] ?? 'Não respondida' }}
               </p>
-              <p v-if="selectedAnswers[qIdx] !== q.correctIndex" class="text-emerald-700">
-                <strong>Resposta correta:</strong> {{ q.options[q.correctIndex] }}
+              <p class="text-emerald-700 font-semibold">
+                <strong>Resposta Correta:</strong> {{ q.options[q.correctIndex] }}
               </p>
             </div>
 
-            <!-- Regulatory explanation -->
-            <div class="p-3 rounded-xl bg-slate-50 border border-slate-200/80 text-[11.5px] text-slate-700 leading-relaxed">
-              <p class="font-semibold text-slate-900 flex items-center gap-1.5 mb-1 text-[11px] uppercase tracking-wide">
-                <Sparkles class="w-3 h-3 text-indigo-500" /> Justificativa Pedagógica:
-              </p>
-              {{ q.explanation }}
+            <div class="p-3 rounded-xl bg-white/80 border border-slate-200/60 text-xs text-slate-600">
+              <p class="font-semibold text-slate-800">Por que esta resposta está correta?</p>
+              <p class="mt-0.5 leading-relaxed">{{ q.explanation }}</p>
             </div>
           </div>
         </div>
 
-        <div class="flex items-center justify-between pt-4 border-t border-slate-100">
+        <!-- Botões de Ação Final -->
+        <div class="flex flex-wrap items-center justify-between gap-4 pt-4 border-t border-slate-100">
           <button
             @click="resetActiveQuiz"
-            class="px-4 py-2 rounded-xl text-xs font-semibold border border-slate-200 text-slate-600 hover:bg-slate-50 flex items-center space-x-1.5"
+            class="px-4 py-2.5 rounded-xl text-xs font-bold border border-slate-200 text-slate-700 hover:bg-slate-50 transition-colors flex items-center space-x-1.5 cursor-pointer"
           >
             <RotateCcw class="w-3.5 h-3.5" />
             <span>Refazer Avaliação</span>
@@ -461,7 +458,7 @@ function closeQuizRunner() {
 
           <button
             @click="closeQuizRunner"
-            class="px-5 py-2.5 rounded-xl text-xs sm:text-sm font-bold bg-slate-900 hover:bg-slate-800 text-white shadow-xs transition-colors"
+            class="px-5 py-2.5 rounded-xl text-xs sm:text-sm font-bold bg-slate-900 hover:bg-slate-800 text-white shadow-xs transition-colors cursor-pointer"
           >
             Finalizar & Voltar à Lista
           </button>
@@ -472,7 +469,7 @@ function closeQuizRunner() {
     <!-- Quizzes Cards Grid -->
     <div v-else class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
       <div
-        v-for="quiz in quizzesList"
+        v-for="quiz in quizStore.quizzesForCurrentUser"
         :key="quiz.id"
         class="bg-white rounded-3xl p-6 border border-slate-200/80 shadow-xs hover:shadow-md transition-all flex flex-col justify-between"
       >
@@ -483,6 +480,7 @@ function closeQuizRunner() {
               {{ quiz.category }}
             </span>
             <span
+              v-if="authStore.isColaborador"
               :class="[
                 'text-[10px] font-bold px-2 py-0.5 rounded border uppercase',
                 quiz.status === 'COMPLETED'
@@ -491,6 +489,12 @@ function closeQuizRunner() {
               ]"
             >
               {{ quiz.status === 'COMPLETED' ? 'Concluído' : 'Pendente' }}
+            </span>
+            <span
+              v-else
+              class="text-[10px] font-bold px-2 py-0.5 rounded border uppercase bg-indigo-50 text-indigo-700 border-indigo-200"
+            >
+              Supervisão
             </span>
           </div>
 
@@ -510,12 +514,25 @@ function closeQuizRunner() {
         </div>
 
         <div>
-          <div v-if="quiz.status === 'COMPLETED'" class="mb-4 p-3 rounded-xl bg-emerald-50/60 border border-emerald-100 flex items-center justify-between text-xs">
-            <span class="text-emerald-800 font-semibold">Nota Registrada:</span>
+          <!-- Nota para colaborador -->
+          <div v-if="authStore.isColaborador && quiz.status === 'COMPLETED'" class="mb-4 p-3 rounded-xl bg-emerald-50/60 border border-emerald-100 flex items-center justify-between text-xs">
+            <span class="text-emerald-800 font-semibold">Sua Nota Registrada:</span>
             <span class="text-sm font-black text-emerald-700">{{ quiz.score }}%</span>
           </div>
 
+          <!-- Botão para Gestor / Admin: Visualizar Questões & Gabarito -->
           <button
+            v-if="authStore.isGestor || authStore.isAdmin"
+            @click="inspectQuiz(quiz)"
+            class="w-full flex items-center justify-center space-x-2 py-2.5 px-4 rounded-xl text-xs sm:text-sm font-bold bg-indigo-50 text-indigo-700 hover:bg-indigo-100 border border-indigo-200 transition-all cursor-pointer"
+          >
+            <Eye class="w-4 h-4" />
+            <span>Visualizar Questões & Gabarito</span>
+          </button>
+
+          <!-- Botão para Colaborador: Fazer Simulado / Revisar -->
+          <button
+            v-else
             @click="startQuiz(quiz)"
             class="w-full flex items-center justify-center space-x-2 py-2.5 px-4 rounded-xl text-xs sm:text-sm font-bold transition-all cursor-pointer"
             :class="quiz.status === 'COMPLETED'

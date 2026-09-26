@@ -224,7 +224,15 @@ function renderLessonMarkdown(content?: string): string {
                 ]"
               >
                 <!-- Checkbox status icon -->
+                <div
+                  v-if="authStore.isGestor"
+                  class="mt-0.5 shrink-0 text-indigo-500"
+                  title="Modo Gestor: Leitura pedagógica"
+                >
+                  <BookOpen class="w-4 h-4" />
+                </div>
                 <button
+                  v-else
                   type="button"
                   @click.stop="trackStore.toggleLessonCompletion(les.id)"
                   class="mt-0.5 shrink-0 text-slate-300 hover:text-emerald-500 transition-colors focus:outline-none"
@@ -274,18 +282,26 @@ function renderLessonMarkdown(content?: string): string {
 
           <!-- Toggle completion button inside header -->
           <div class="mt-6 flex flex-wrap items-center gap-3">
-            <button
-              @click="handleToggleComplete"
-              :class="[
-                'inline-flex items-center space-x-2 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-bold transition-all shadow-xs',
-                isCurrentLessonCompleted
-                  ? 'bg-emerald-600 hover:bg-emerald-700 text-white'
-                  : 'bg-brand-600 hover:bg-brand-700 text-white'
-              ]"
-            >
-              <CheckCircle class="w-4 h-4" />
-              <span>{{ isCurrentLessonCompleted ? 'Lição Concluída ✓' : 'Marcar Lição como Concluída' }}</span>
-            </button>
+            <template v-if="authStore.isColaborador">
+              <button
+                @click="handleToggleComplete"
+                :class="[
+                  'inline-flex items-center space-x-2 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-bold transition-all shadow-xs cursor-pointer',
+                  isCurrentLessonCompleted
+                    ? 'bg-emerald-600 hover:bg-emerald-700 text-white'
+                    : 'bg-brand-600 hover:bg-brand-700 text-white'
+                ]"
+              >
+                <CheckCircle class="w-4 h-4" />
+                <span>{{ isCurrentLessonCompleted ? 'Lição Concluída ✓' : 'Marcar Lição como Concluída' }}</span>
+              </button>
+            </template>
+            <template v-else-if="authStore.isGestor">
+              <div class="inline-flex items-center space-x-2 px-3.5 py-2 rounded-xl text-xs sm:text-sm font-bold bg-indigo-50 text-indigo-800 border border-indigo-200">
+                <BookOpen class="w-4 h-4 text-indigo-600" />
+                <span>Modo Gestor — Leitura Pedagógica</span>
+              </div>
+            </template>
 
             <!-- Quiz button for managers / admins -->
             <button

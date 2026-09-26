@@ -3,6 +3,7 @@ import { onMounted, ref } from 'vue';
 import { useRouter } from 'vue-router';
 import { useAuthStore } from '@/stores/auth';
 import { useTrackStore } from '@/stores/tracks';
+import { useQuizStore } from '@/stores/quizzes';
 import { useAiTutorStore } from '@/stores/aiTutor';
 import ProgressBar from '@/components/common/ProgressBar.vue';
 import SkeletonLoader from '@/components/common/SkeletonLoader.vue';
@@ -29,6 +30,7 @@ import {
 const router = useRouter();
 const authStore = useAuthStore();
 const trackStore = useTrackStore();
+const quizStore = useQuizStore();
 const aiTutorStore = useAiTutorStore();
 
 const isQuizModalOpen = ref(false);
@@ -41,6 +43,10 @@ onMounted(async () => {
 });
 
 function openTrackLesson(trackId: string) {
+  if (authStore.isGestor) {
+    router.push('/trilhas');
+    return;
+  }
   const track = trackStore.tracks.find((t) => t.id === trackId);
   if (!track || !track.modules || track.modules.length === 0) return;
 
@@ -172,11 +178,14 @@ function openTrackLesson(trackId: string) {
             <Award class="w-4 h-4 text-indigo-600" />
           </div>
           <div class="flex items-baseline space-x-2">
-            <span class="text-3xl font-extrabold text-indigo-700 tracking-tight">100%</span>
+            <span class="text-3xl font-extrabold text-indigo-700 tracking-tight">
+              {{ quizStore.averageQuizScore > 0 ? `${quizStore.averageQuizScore}%` : 'Pendente' }}
+            </span>
             <span class="text-xs text-slate-400">média</span>
           </div>
           <router-link to="/quizzes" class="text-xs text-indigo-600 font-bold mt-3 hover:underline inline-flex items-center gap-1">
-            Ver 2 quizzes pendentes <ArrowRight class="w-3 h-3" />
+            <span>{{ quizStore.completedQuizzesCount }} de {{ quizStore.quizzes.length }} concluídos</span>
+            <ArrowRight class="w-3 h-3" />
           </router-link>
         </div>
 
@@ -306,6 +315,31 @@ function openTrackLesson(trackId: string) {
       </template>
     </div>
 
+    <!-- Gestor Quick Leadership Banner -->
+    <div
+      v-if="authStore.isGestor"
+      class="bg-gradient-to-r from-indigo-900 via-slate-900 to-brand-950 rounded-3xl p-6 sm:p-7 text-white flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-lg border border-indigo-700/40"
+    >
+      <div class="space-y-1">
+        <div class="inline-flex items-center space-x-1.5 px-2.5 py-0.5 rounded text-[11px] font-bold bg-indigo-500/20 text-indigo-300 border border-indigo-400/30">
+          <Users class="w-3.5 h-3.5" />
+          <span>Liderança & Supervisão</span>
+        </div>
+        <h3 class="text-lg font-bold">Cockpit de Gestão da Turma</h3>
+        <p class="text-xs sm:text-sm text-slate-300">
+          Como gestor, seu foco é o acompanhamento de metas, cumprimento de SLAs e engajamento dos colaboradores.
+        </p>
+      </div>
+
+      <router-link
+        to="/gestao"
+        class="shrink-0 px-5 py-3 rounded-2xl bg-indigo-500 hover:bg-indigo-600 text-white font-bold text-xs sm:text-sm shadow-md transition-all flex items-center space-x-2"
+      >
+        <span>Abrir Gestão de Turma</span>
+        <ArrowRight class="w-4 h-4" />
+      </router-link>
+    </div>
+
     <!-- Tracks List Section -->
     <div class="space-y-6">
       <div class="flex items-center justify-between">
@@ -388,7 +422,7 @@ function openTrackLesson(trackId: string) {
               @click="openTrackLesson(track.id)"
               class="inline-flex items-center space-x-2 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-bold bg-brand-700 hover:bg-brand-800 text-white shadow-md shadow-brand-700/20 group-hover:bg-brand-600 transition-all cursor-pointer"
             >
-              <span>Continuar Trilha</span>
+              <span>{{ authStore.isGestor ? 'Consultar Grade Curricular' : 'Continuar Trilha' }}</span>
               <ArrowRight class="w-4 h-4" />
             </button>
           </div>

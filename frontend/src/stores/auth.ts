@@ -3,7 +3,7 @@ import { ref, computed } from 'vue';
 import type { UserProfile, UserRole } from '@/types';
 import { api } from '@/api/client';
 
-export const mockProfiles: UserProfile[] = [
+export const defaultMockProfiles: UserProfile[] = [
   {
     id: '11111111-1111-1111-1111-111111111111',
     name: 'Ana Carolina Silva',
@@ -51,6 +51,8 @@ export const mockProfiles: UserProfile[] = [
   },
 ];
 
+export const mockProfiles = defaultMockProfiles;
+
 export const profileCredentials: Record<string, { user: string; pass: string; profileId: string }> = {
   'colaborador': { user: 'colaborador', pass: 'colab123', profileId: '11111111-1111-1111-1111-111111111111' },
   'carlos': { user: 'carlos', pass: 'carlos123', profileId: '44444444-4444-4444-4444-444444444444' },
@@ -68,10 +70,47 @@ const profileIdToUsername: Record<string, string> = {
 };
 
 export const useAuthStore = defineStore('auth', () => {
-  const currentUser = ref<UserProfile>(mockProfiles[0]);
+  const savedProfiles = localStorage.getItem('coop_user_profiles');
+  const profiles = ref<UserProfile[]>(savedProfiles ? JSON.parse(savedProfiles) : [...defaultMockProfiles]);
+
+  const currentUser = ref<UserProfile>(profiles.value[0]);
   const token = ref<string | null>(localStorage.getItem('coop_auth_token'));
   const refreshToken = ref<string | null>(localStorage.getItem('coop_refresh_token'));
   const activeUsername = ref<string>('colaborador');
+
+  function saveProfiles() {
+    localStorage.setItem('coop_user_profiles', JSON.stringify(profiles.value));
+  }
+
+  function createUser(userData: Omit<UserProfile, 'id'>): UserProfile {
+    const newId = `user-${Date.now()}`;
+    const newUser: UserProfile = {
+      id: newId,
+      ...userData,
+    };
+    profiles.value.push(newUser);
+    saveProfiles();
+    return newUser;
+  }
+
+  function updateUser(id: string, updates: Partial<UserProfile>) {
+    const idx = profiles.value.findIndex((p) => p.id === id);
+    if (idx !== -1) {
+      profiles.value[idx] = { ...profiles.value[idx], ...updates };
+      saveProfiles();
+      if (currentUser.value.id === id) {
+        currentUser.value = { ...profiles.value[idx] };
+      }
+    }
+  }
+
+  function deleteUser(id: string) {
+    profiles.value = profiles.value.filter((p) => p.id !== id);
+    saveProfiles();
+    if (currentUser.value.id === id && profiles.value.length > 0) {
+      currentUser.value = { ...profiles.value[0] };
+    }
+  }
 
   // Inicializa o ApiClient com o token salvo se existir
   if (token.value) {
@@ -178,7 +217,7 @@ export const useAuthStore = defineStore('auth', () => {
   }
 
   async function switchProfile(profileId: string) {
-    const found = mockProfiles.find((p) => p.id === profileId);
+    const found = profiles.value.find((p) => p.id === profileId);
     if (found) {
       currentUser.value = { ...found };
       await syncKeycloakToken(profileId);
@@ -222,7 +261,8 @@ export const useAuthStore = defineStore('auth', () => {
     token,
     refreshToken,
     activeUsername,
-    mockProfiles,
+    profiles,
+    mockProfiles: profiles,
     profileCredentials,
     isAuthenticated,
     isColaborador,
@@ -238,5 +278,8 @@ export const useAuthStore = defineStore('auth', () => {
     setRole,
     setToken,
     setRefreshToken,
+    createUser,
+    updateUser,
+    deleteUser,
   };
 });

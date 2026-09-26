@@ -24,10 +24,14 @@ const aiTutorStore = useAiTutorStore();
     <!-- Corporate Footer -->
     <footer class="mt-auto border-t border-slate-200/80 bg-white py-6 text-xs text-slate-500">
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-4">
-        <div class="flex items-center space-x-2">
-          <div class="w-6 h-6 rounded-lg bg-brand-600 flex items-center justify-center text-white text-[10px] font-bold">
-            COOP
+        <div class="flex items-center space-x-2.5">
+          <div class="w-6 h-6 rounded-lg bg-gradient-to-br from-brand-600 to-brand-800 flex items-center justify-center text-white shadow-xs shrink-0">
+            <svg class="w-3.5 h-3.5 text-brand-100" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
+            </svg>
           </div>
+          <span class="font-bold text-slate-800 tracking-tight">coop<span class="text-brand-600">.onboarding</span></span>
+          <span class="text-slate-300">·</span>
           <span>&copy; 2026 Cooperativa de Crédito Integrada. Todos os direitos reservados.</span>
         </div>
         <div class="flex flex-wrap items-center gap-4 sm:gap-6">
@@ -42,7 +46,7 @@ const aiTutorStore = useAiTutorStore();
     <div class="fixed bottom-6 right-6 z-30">
       <button
         @click="aiTutorStore.openDrawer"
-        class="group relative flex items-center space-x-2.5 px-4 py-3 rounded-2xl bg-gradient-to-r from-ai-500 to-indigo-600 hover:from-ai-600 hover:to-indigo-700 text-white shadow-xl shadow-ai-500/30 hover:scale-105 active:scale-95 transition-all duration-300 ring-4 ring-white"
+        class="group relative flex items-center space-x-2.5 px-4 py-3 rounded-2xl bg-gradient-to-r from-ai-500 to-indigo-600 hover:from-ai-600 hover:to-indigo-700 text-white shadow-xl shadow-ai-500/35 hover:scale-105 active:scale-95 transition-all duration-300 border border-white/20"
         title="Dúvidas sobre o conteúdo? Fale com o Tutor Virtual de IA"
       >
         <span class="relative flex h-2.5 w-2.5">

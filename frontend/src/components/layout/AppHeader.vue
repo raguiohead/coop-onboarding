@@ -47,67 +47,69 @@ function handleLogout() {
 <template>
   <header class="sticky top-0 z-30 bg-white/90 backdrop-blur-md border-b border-slate-200/80 shadow-xs">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-      <div class="flex items-center justify-between h-16">
-        <!-- Logo / Brand -->
-        <div class="flex items-center space-x-3 cursor-pointer select-none" @click="navigateToHome">
-          <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-brand-600 to-brand-800 flex items-center justify-center text-white shadow-md shadow-brand-500/20 ring-2 ring-brand-400/30">
-            <svg class="w-6 h-6 text-brand-100" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
-            </svg>
-          </div>
-          <div>
-            <div class="flex items-center space-x-1.5">
-              <span class="text-lg font-extrabold tracking-tight text-slate-900 font-sans">
-                coop<span class="text-brand-600">.onboarding</span>
-              </span>
-              <span class="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-bold tracking-wide uppercase bg-brand-50 text-brand-700 border border-brand-200">
-                Cooperativo
-              </span>
+      <div class="flex items-center justify-between h-20">
+        <!-- Start: Logo and Nav Grouped Together from Start -->
+        <div class="flex items-center space-x-6 sm:space-x-8 lg:space-x-10">
+          <!-- Logo / Brand -->
+          <div class="flex items-center space-x-3 cursor-pointer select-none" @click="navigateToHome">
+            <div class="w-11 h-11 rounded-2xl bg-gradient-to-br from-brand-600 to-brand-800 flex items-center justify-center text-white shadow-md shadow-brand-500/20 ring-2 ring-brand-400/30">
+              <svg class="w-6 h-6 text-brand-100" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
+              </svg>
             </div>
-            <p class="text-[11px] text-slate-500 hidden sm:block">Plataforma de Capacitação & Integração Inteligente</p>
+            <div>
+              <div class="flex items-center space-x-1.5">
+                <span class="text-xl font-extrabold tracking-tight text-slate-900 font-sans">
+                  coop<span class="text-brand-600">.onboarding</span>
+                </span>
+                <span class="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-bold tracking-wide uppercase bg-brand-50 text-brand-700 border border-brand-200">
+                  Cooperativo
+                </span>
+              </div>
+              <p class="text-[11px] text-slate-500 hidden sm:block">Plataforma de Capacitação & Integração Inteligente</p>
+            </div>
           </div>
+
+          <!-- Navigation items (aligned from start after brand) -->
+          <nav class="hidden md:flex items-center space-x-2 lg:space-x-2.5">
+            <router-link
+              to="/"
+              class="px-3.5 py-2.5 rounded-xl text-sm font-semibold transition-all flex items-center space-x-2 text-slate-600 hover:text-brand-700 hover:bg-brand-50/80"
+              active-class="!text-brand-700 !bg-brand-50 shadow-2xs font-bold"
+            >
+              <LayoutDashboard class="w-4 h-4" />
+              <span>Painel Geral</span>
+            </router-link>
+
+            <router-link
+              v-if="authStore.isGestor || authStore.isAdmin"
+              to="/gestao"
+              class="px-3.5 py-2.5 rounded-xl text-sm font-semibold transition-all flex items-center space-x-2 text-slate-600 hover:text-brand-700 hover:bg-brand-50/80"
+              active-class="!text-brand-700 !bg-brand-50 shadow-2xs font-bold"
+            >
+              <Users class="w-4 h-4" />
+              <span>Gestão de Turma</span>
+            </router-link>
+
+            <router-link
+              to="/trilhas"
+              class="px-3.5 py-2.5 rounded-xl text-sm font-semibold transition-all flex items-center space-x-2 text-slate-600 hover:text-brand-700 hover:bg-brand-50/80"
+              active-class="!text-brand-700 !bg-brand-50 shadow-2xs font-bold"
+            >
+              <BookOpen class="w-4 h-4" />
+              <span>{{ authStore.isGestor ? 'Catálogo de Trilhas' : 'Trilhas' }}</span>
+            </router-link>
+
+            <router-link
+              to="/quizzes"
+              class="px-3.5 py-2.5 rounded-xl text-sm font-semibold transition-all flex items-center space-x-2 text-slate-600 hover:text-brand-700 hover:bg-brand-50/80"
+              active-class="!text-brand-700 !bg-brand-50 shadow-2xs font-bold"
+            >
+              <HelpCircle class="w-4 h-4" />
+              <span>{{ authStore.isGestor ? 'Banco de Quizzes' : 'Quizzes' }}</span>
+            </router-link>
+          </nav>
         </div>
-
-        <!-- Navigation items -->
-        <nav class="hidden md:flex items-center space-x-1">
-          <router-link
-            to="/"
-            class="px-3 py-2 rounded-lg text-sm font-medium transition-colors flex items-center space-x-1.5 text-slate-600 hover:text-brand-700 hover:bg-brand-50"
-            active-class="!text-brand-700 !bg-brand-50 font-semibold"
-          >
-            <LayoutDashboard class="w-4 h-4" />
-            <span>Painel Geral</span>
-          </router-link>
-
-          <router-link
-            to="/trilhas"
-            class="px-3 py-2 rounded-lg text-sm font-medium transition-colors flex items-center space-x-1.5 text-slate-600 hover:text-brand-700 hover:bg-brand-50"
-            active-class="!text-brand-700 !bg-brand-50 font-semibold"
-          >
-            <BookOpen class="w-4 h-4" />
-            <span>Trilhas</span>
-          </router-link>
-
-          <router-link
-            to="/quizzes"
-            class="px-3 py-2 rounded-lg text-sm font-medium transition-colors flex items-center space-x-1.5 text-slate-600 hover:text-brand-700 hover:bg-brand-50"
-            active-class="!text-brand-700 !bg-brand-50 font-semibold"
-          >
-            <HelpCircle class="w-4 h-4" />
-            <span>Quizzes</span>
-          </router-link>
-
-          <router-link
-            v-if="authStore.isGestor || authStore.isAdmin"
-            to="/gestao"
-            class="px-3 py-2 rounded-lg text-sm font-medium transition-colors flex items-center space-x-1.5 text-slate-600 hover:text-brand-700 hover:bg-brand-50"
-            active-class="!text-brand-700 !bg-brand-50 font-semibold"
-          >
-            <Users class="w-4 h-4" />
-            <span>Gestão de Turma</span>
-          </router-link>
-
-        </nav>
 
         <!-- Right Side: User Switcher (Tutor IA removed from topbar, fixed in bottom-right) -->
         <div class="flex items-center space-x-3">

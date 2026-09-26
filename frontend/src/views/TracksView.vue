@@ -19,6 +19,8 @@ import {
   ChevronUp,
   Sparkles,
   Award,
+  Eye,
+  Users,
 } from 'lucide-vue-next';
 
 const router = useRouter();
@@ -90,27 +92,55 @@ function continueTrack(trackId: string) {
     <div class="bg-gradient-to-br from-slate-900 via-brand-950 to-slate-900 rounded-3xl p-8 sm:p-10 text-white relative overflow-hidden shadow-xl border border-slate-800">
       <div class="absolute -right-10 -bottom-10 w-96 h-96 bg-brand-500/10 rounded-full blur-3xl pointer-events-none"></div>
       <div class="relative z-10 max-w-3xl space-y-4">
-        <div class="inline-flex items-center space-x-2 px-3 py-1 rounded-full text-xs font-semibold bg-brand-500/20 text-brand-300 border border-brand-500/30">
+        <div v-if="authStore.isGestor" class="inline-flex items-center space-x-2 px-3 py-1 rounded-full text-xs font-semibold bg-indigo-500/20 text-indigo-300 border border-indigo-500/30">
+          <Eye class="w-3.5 h-3.5" />
+          <span>Visão Consultiva do Gestor — Catálogo de Conteúdos</span>
+        </div>
+        <div v-else class="inline-flex items-center space-x-2 px-3 py-1 rounded-full text-xs font-semibold bg-brand-500/20 text-brand-300 border border-brand-500/30">
           <BookOpen class="w-3.5 h-3.5" />
           <span>Matriz de Capacitação Institucional</span>
         </div>
         <h1 class="text-2xl sm:text-4xl font-extrabold tracking-tight font-sans">
-          Trilhas de Aprendizagem & Formação
+          {{ authStore.isGestor ? 'Catálogo de Trilhas da Turma' : 'Trilhas de Aprendizagem & Formação' }}
         </h1>
         <p class="text-sm sm:text-base text-slate-300 leading-relaxed">
-          Explore as jornadas estruturadas de integração para aprofundar seu conhecimento em governança cooperativa, regulação financeira, crédito consciente e ferramentas corporativas.
+          <span v-if="authStore.isGestor">
+            Como gestor, você visualiza a grade curricular completa, módulos e ementas pedagógicas para orientar o plano de desenvolvimento dos membros da sua equipe.
+          </span>
+          <span v-else>
+            Explore as jornadas estruturadas de integração para aprofundar seu conhecimento em governança cooperativa, regulação financeira, crédito consciente e ferramentas corporativas.
+          </span>
         </p>
 
-        <!-- Resumo Rápido de Progresso do Usuário -->
-        <div class="pt-4 flex flex-wrap items-center gap-6 text-xs sm:text-sm">
-          <div class="bg-white/10 backdrop-blur-md px-4 py-2 rounded-2xl border border-white/10 flex items-center space-x-2">
-            <span class="text-slate-300">Progresso Geral:</span>
-            <span class="font-bold text-white">{{ trackStore.overallProgressPercent }}%</span>
-          </div>
-          <div class="bg-white/10 backdrop-blur-md px-4 py-2 rounded-2xl border border-white/10 flex items-center space-x-2">
-            <span class="text-slate-300">Lições Concluídas:</span>
-            <span class="font-bold text-white">{{ trackStore.completedCount }} de {{ trackStore.totalLessonsCount }}</span>
-          </div>
+        <!-- Resumo Rápido de Progresso do Usuário ou da Turma -->
+        <div class="pt-4 flex flex-wrap items-center gap-4 sm:gap-6 text-xs sm:text-sm">
+          <template v-if="authStore.isColaborador">
+            <div class="bg-white/10 backdrop-blur-md px-4 py-2 rounded-2xl border border-white/10 flex items-center space-x-2">
+              <span class="text-slate-300">Seu Progresso:</span>
+              <span class="font-bold text-white">{{ trackStore.overallProgressPercent }}%</span>
+            </div>
+            <div class="bg-white/10 backdrop-blur-md px-4 py-2 rounded-2xl border border-white/10 flex items-center space-x-2">
+              <span class="text-slate-300">Lições Concluídas:</span>
+              <span class="font-bold text-white">{{ trackStore.completedCount }} de {{ trackStore.totalLessonsCount }}</span>
+            </div>
+          </template>
+          <template v-else-if="authStore.isGestor">
+            <div class="bg-white/10 backdrop-blur-md px-4 py-2 rounded-2xl border border-white/10 flex items-center space-x-2">
+              <span class="text-slate-300">Papel:</span>
+              <span class="font-bold text-indigo-300">Gestor de Equipe</span>
+            </div>
+            <div class="bg-white/10 backdrop-blur-md px-4 py-2 rounded-2xl border border-white/10 flex items-center space-x-2">
+              <span class="text-slate-300">Trilhas no Catálogo:</span>
+              <span class="font-bold text-white">{{ trackStore.tracks.length }} Formações</span>
+            </div>
+            <router-link
+              to="/gestao"
+              class="bg-indigo-500/80 hover:bg-indigo-500 text-white font-bold px-4 py-2 rounded-2xl flex items-center space-x-1.5 transition-colors"
+            >
+              <Users class="w-3.5 h-3.5" />
+              <span>Abrir Gestão da Turma</span>
+            </router-link>
+          </template>
         </div>
       </div>
     </div>
@@ -185,19 +215,23 @@ function continueTrack(trackId: string) {
 
           <!-- Lado Direito: Progresso e Ação -->
           <div class="shrink-0 flex flex-col sm:flex-row lg:flex-col items-start sm:items-center lg:items-end justify-between gap-4">
-            <div class="w-full sm:w-48 text-left sm:text-right">
+            <div v-if="authStore.isColaborador" class="w-full sm:w-48 text-left sm:text-right">
               <div class="flex items-center justify-between text-xs font-bold text-slate-700 mb-1">
                 <span>Progresso</span>
                 <span>{{ trackStore.getTrackProgressPercent(track.id) }}%</span>
               </div>
               <ProgressBar :value="trackStore.getTrackProgressPercent(track.id)" variant="brand" />
             </div>
+            <div v-else-if="authStore.isGestor" class="px-3 py-1.5 rounded-xl bg-indigo-50 text-indigo-800 border border-indigo-200 text-xs font-bold flex items-center gap-1.5">
+              <Eye class="w-3.5 h-3.5 text-indigo-600" />
+              <span>Grade Curricular da Turma</span>
+            </div>
 
             <button
               @click="continueTrack(track.id)"
               class="w-full sm:w-auto inline-flex items-center justify-center space-x-2 px-5 py-3 rounded-2xl text-xs sm:text-sm font-bold bg-brand-600 hover:bg-brand-700 text-white shadow-md shadow-brand-600/20 hover:scale-[1.02] active:scale-[0.98] transition-all cursor-pointer"
             >
-              <span>Continuar Trilha</span>
+              <span>{{ authStore.isGestor ? 'Consultar Módulos da Trilha' : 'Continuar Trilha' }}</span>
               <ArrowRight class="w-4 h-4" />
             </button>
           </div>
@@ -253,13 +287,19 @@ function continueTrack(trackId: string) {
                   class="p-3.5 sm:px-6 flex items-center justify-between hover:bg-white transition-colors cursor-pointer group"
                 >
                   <div class="flex items-center space-x-3">
-                    <CheckCircle2
-                      v-if="trackStore.isLessonCompleted(lesson.id)"
-                      class="w-4 h-4 text-emerald-500 shrink-0"
-                    />
-                    <Circle
+                    <template v-if="authStore.isColaborador">
+                      <CheckCircle2
+                        v-if="trackStore.isLessonCompleted(lesson.id)"
+                        class="w-4 h-4 text-emerald-500 shrink-0"
+                      />
+                      <Circle
+                        v-else
+                        class="w-4 h-4 text-slate-300 group-hover:text-brand-500 shrink-0 transition-colors"
+                      />
+                    </template>
+                    <BookOpen
                       v-else
-                      class="w-4 h-4 text-slate-300 group-hover:text-brand-500 shrink-0 transition-colors"
+                      class="w-4 h-4 text-indigo-500 group-hover:text-brand-600 shrink-0 transition-colors"
                     />
                     <div>
                       <p class="text-xs sm:text-sm font-medium text-slate-800 group-hover:text-brand-700 transition-colors">
@@ -271,10 +311,16 @@ function continueTrack(trackId: string) {
                   <div class="flex items-center space-x-3 text-xs text-slate-400">
                     <span class="hidden sm:inline">{{ lesson.estimatedMinutes }} min</span>
                     <span
-                      v-if="trackStore.isLessonCompleted(lesson.id)"
+                      v-if="authStore.isColaborador && trackStore.isLessonCompleted(lesson.id)"
                       class="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200"
                     >
                       Concluída
+                    </span>
+                    <span
+                      v-else-if="authStore.isGestor"
+                      class="px-2 py-0.5 rounded text-[10px] font-semibold bg-indigo-50 text-indigo-700 border border-indigo-200"
+                    >
+                      Leitura Pedagógica
                     </span>
                     <span
                       v-else
