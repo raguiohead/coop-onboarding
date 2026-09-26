@@ -209,12 +209,15 @@ function renderLessonMarkdown(content?: string): string {
             </h4>
 
             <div class="space-y-1">
-              <button
+              <div
                 v-for="les in mod.lessons"
                 :key="les.id"
+                role="button"
+                tabindex="0"
                 @click="navigateToLesson(les.id)"
+                @keydown.enter="navigateToLesson(les.id)"
                 :class="[
-                  'w-full flex items-start space-x-3 p-3 rounded-xl text-left text-xs transition-all',
+                  'w-full flex items-start space-x-3 p-3 rounded-xl text-left text-xs transition-all cursor-pointer select-none focus:outline-none focus:ring-2 focus:ring-brand-500/30',
                   les.id === currentLesson?.id
                     ? 'bg-brand-50 border border-brand-200/80 text-brand-950 font-bold shadow-xs'
                     : 'hover:bg-slate-50 text-slate-700 border border-transparent'
@@ -224,7 +227,7 @@ function renderLessonMarkdown(content?: string): string {
                 <button
                   type="button"
                   @click.stop="trackStore.toggleLessonCompletion(les.id)"
-                  class="mt-0.5 shrink-0 text-slate-300 hover:text-emerald-500 transition-colors"
+                  class="mt-0.5 shrink-0 text-slate-300 hover:text-emerald-500 transition-colors focus:outline-none"
                   :title="trackStore.isLessonCompleted(les.id) ? 'Marcar como não concluída' : 'Marcar como concluída'"
                 >
                   <CheckCircle
@@ -245,7 +248,7 @@ function renderLessonMarkdown(content?: string): string {
                     </span>
                   </div>
                 </div>
-              </button>
+              </div>
             </div>
           </div>
         </div>
