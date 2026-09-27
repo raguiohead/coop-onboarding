@@ -1,0 +1,102 @@
+version: '3.8'
+
+services:
+  # ============================================================================
+  # 1. PostgreSQL 16 com extensão pgvector (Banco Relacional + Vector Store)
+  # ============================================================================
+  postgres:
+    image: pgvector/pgvector:pg16
+    container_name: coop-postgres-local
+    restart: unless-stopped
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_DB: coop_onboarding
+      POSTGRES_USER: coop_user
+      POSTGRES_PASSWORD: coop_pass
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./init-db.sh:/docker-entrypoint-initdb.d/init-db.sh:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U coop_user -d coop_onboarding"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - coop-local-network
+
+  # ============================================================================
+  # 2. Keycloak 25 (Identity & Access Management / OAuth2 / OpenID Connect)
+  # ============================================================================
+  keycloak:
+    image: quay.io/keycloak/keycloak:25.0.2
+    container_name: coop-keycloak-local
+    restart: unless-stopped
+    command: start-dev --import-realm
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      KC_DB: postgres
+      KC_DB_URL: jdbc:postgresql://postgres:5432/keycloak
+      KC_DB_USERNAME: coop_user
+      KC_DB_PASSWORD: coop_pass
+      KEYCLOAK_ADMIN: admin
+      KEYCLOAK_ADMIN_PASSWORD: admin
+      KC_HEALTH_ENABLED: "true"
+      KC_METRICS_ENABLED: "true"
+      KC_HTTP_PORT: "8080"
+    volumes:
+      - ./keycloak/realm-export.json:/opt/keycloak/data/import/realm-export.json:ro
+    ports:
+      - "8180:8080"
+    networks:
+      - coop-local-network
+
+  # ============================================================================
+  # 3. Backend (Spring Boot 3.3 / Java 21 / Spring AI)
+  # ============================================================================
+  backend:
+    image: ghcr.io/raguiohead/coop-onboarding/backend:latest
+    container_name: coop-backend-local
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/coop_onboarding
+      SPRING_DATASOURCE_USERNAME: coop_user
+      SPRING_DATASOURCE_PASSWORD: coop_pass
+      SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER_URI: http://keycloak:8080/realms/coop-onboarding
+      SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_JWK_SET_URI: http://keycloak:8080/realms/coop-onboarding/protocol/openid-connect/certs
+      SPRING_AI_OLLAMA_BASE_URL: http://host.docker.internal:11434
+      SPRING_AI_OLLAMA_CHAT_OPTIONS_MODEL: llama3.2:1b
+      SPRING_AI_OLLAMA_EMBEDDING_OPTIONS_MODEL: nomic-embed-text
+    ports:
+      - "8080:8080"
+    networks:
+      - coop-local-network
+
+  # ============================================================================
+  # 4. Frontend (Vue 3 + Nginx SPA)
+  # ============================================================================
+  frontend:
+    image: ghcr.io/raguiohead/coop-onboarding/frontend:latest
+    container_name: coop-frontend-local
+    restart: unless-stopped
+    depends_on:
+      - backend
+    ports:
+      - "80:80"
+    networks:
+      - coop-local-network
+
+networks:
+  coop-local-network:
+    driver: bridge
+
+volumes:
+  postgres_data:
+    driver: local
