@@ -12,6 +12,27 @@
 [![Keycloak](https://img.shields.io/badge/Keycloak-25.0-008080?style=for-the-badge&logo=keycloak&logoColor=white)](https://www.keycloak.org/)
 [![Ollama](https://img.shields.io/badge/Ollama-Llama%203.2%201B-FF6F00?style=for-the-badge&logo=ollama&logoColor=white)](https://ollama.com/)
 [![Docker](https://img.shields.io/badge/Docker-Compose-2496ED?style=for-the-badge&logo=docker&logoColor=white)](https://www.docker.com/)
+[![Live Demo](https://img.shields.io/badge/Live%20Demo-Online%20(Oracle%20Cloud)-success?style=for-the-badge&logo=oracle&logoColor=white)](http://163.176.171.177)
+
+---
+
+## 🌐 Demonstração ao Vivo na Web (Live Demo)
+
+A plataforma **coop-onboarding** está **publicada e em execução 24/7** em uma instância de nuvem Oracle Cloud:
+
+👉 **[http://163.176.171.177](http://163.176.171.177)**
+
+> ⚠️ **Atenção:** Como o acesso é realizado diretamente pelo IP público da instância (sem domínio com certificado SSL dedicado), **acesse utilizando explicitamente `http://`** (se o navegador tentar converter automaticamente para `https://`, ele exibirá erro de recusa de conexão).
+
+### 🔑 Credenciais para Teste Rápido
+
+Você pode entrar e testar imediatamente com qualquer um dos 3 perfis corporativos:
+
+| Usuário | Senha | Perfil (Role) | O que testar na demonstração |
+| :--- | :--- | :--- | :--- |
+| **`colaborador`** | `colab123` | Colaborador | Trilhas de formação, leitor imersivo, **Guia Rápido de Onboarding**, quizzes de fixação e **Tutor IA com Streaming SSE em tempo real**. |
+| **`gestor`** | `gestor123` | Gestor | Dashboard analítico de desempenho dos colaboradores da equipe, progresso de trilhas e **Gerador de Quizzes pedagógicos via IA**. |
+| **`admin`** | `admin123` | Administrador | Todos os recursos de Gestor + **Painel de Governança e Saúde dos Serviços** (status da API, PostgreSQL/pgvector, IA local Ollama e métricas). |
 
 ---
 
@@ -196,7 +217,7 @@ flowchart LR
 ### Topologia de Branches e Tags:
 - **`develop`:** Ambiente de desenvolvimento contínuo. Imagens geradas com tag `:dev` e `:${GITHUB_SHA}`.
 - **`staging`:** Ambiente de homologação e validação de qualidade (QA). Imagens geradas com tag `:staging` e `:qa`.
-- **`main`:** Ambiente de produção oficial. Imagens geradas com tag `:latest` e `:production`, disparando deploy para o servidor web.
+- **`main`:** Ambiente de produção oficial. Imagens geradas com tag `:latest` e `:production`, disparando deploy automatizado via SSH para a instância na nuvem Oracle Cloud (`http://163.176.171.177`).
 
 ### Executar a Stack de Produção Completa com Docker Compose:
 ```bash
