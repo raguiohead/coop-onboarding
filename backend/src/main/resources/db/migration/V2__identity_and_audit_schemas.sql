@@ -38,15 +38,6 @@ ON CONFLICT (keycloak_id) DO UPDATE SET
     department = EXCLUDED.department,
     updated_at = CURRENT_TIMESTAMP;
 
--- Usuários padrão legados sincronizados:
-INSERT INTO public.users (keycloak_id, name, email, role, department) VALUES
-    ('9492006c-0c7e-4113-9a35-66c1b7f2e7a0', 'Administrador Master', 'admin@coop.local', 'ADMIN', 'Governança & TI'),
-    ('1e1c6475-cdc8-4692-9998-6a2c77272213', 'Gestor Treinamentos', 'gestor@coop.local', 'GESTOR', 'Desenvolvimento Humano e Organizacional (DHO)'),
-    ('0cbd65c5-76a3-4b88-8283-8e39bc1a5c2b', 'Colaborador Novo', 'colaborador@coop.local', 'COLABORADOR', 'Atendimento & Cooperados'),
-    ('b851aa1f-cd27-4eda-a7f5-a0f9c805f229', 'Carlos Souza', 'carlos.souza@coop.local', 'COLABORADOR', 'Atendimento & Cooperados'),
-    ('292ff876-9048-4d59-b9d9-a9b42761777d', 'Fernanda Lima', 'fernanda.lima@coop.local', 'GESTOR', 'Desenvolvimento Humano e Organizacional (DHO)')
-ON CONFLICT (keycloak_id) DO NOTHING;
-
 -- 5. Schema identity: Tabela de Perfis Complementares (Perfil Rico)
 CREATE TABLE IF NOT EXISTS identity.user_profiles (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),

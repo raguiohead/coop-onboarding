@@ -55,6 +55,14 @@ class ApiClient {
     return res;
   }
 
+  async getCurrentUser(): Promise<{ id: string; keycloakId: string; name: string; email: string; role: string; department?: string }> {
+    const res = await this.fetchWithRetry(`${BASE_URL}/users/me`);
+    if (!res.ok) {
+      throw new Error(`Falha ao buscar perfil: ${res.statusText}`);
+    }
+    return res.json();
+  }
+
   async getTracks(): Promise<Track[]> {
     const res = await this.fetchWithRetry(`${BASE_URL}/tracks`);
     if (!res.ok) {

@@ -13,8 +13,8 @@ import {
 const router = useRouter();
 const authStore = useAuthStore();
 
-const username = ref('colaborador');
-const password = ref('colab123');
+const username = ref('lucas.colaborador');
+const password = ref('Colab@123');
 const isLoading = ref(false);
 const errorMessage = ref('');
 
@@ -84,7 +84,7 @@ async function handleLogin() {
                 type="text"
                 required
                 autocomplete="username"
-                placeholder="Ex: colaborador, gestor, admin, carlos, fernanda"
+                placeholder="Ex: lucas.colaborador, mariana.gestora, rodrigo.admin"
                 class="block w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-300 focus:outline-hidden focus:ring-2 focus:ring-brand-500 focus:border-brand-500 text-sm text-slate-900 placeholder:text-slate-400 bg-slate-50/50 focus:bg-white transition-colors"
               />
             </div>
