@@ -8,6 +8,8 @@ services:
     image: pgvector/pgvector:pg16
     container_name: coop-postgres-prod
     restart: unless-stopped
+    command: postgres -c shared_buffers=64MB -c work_mem=4MB -c maintenance_work_mem=32MB -c effective_cache_size=128MB
+    mem_limit: 256m
     environment:
       POSTGRES_DB: coop_onboarding
       POSTGRES_USER: coop_user
@@ -20,6 +22,11 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
     networks:
       - coop-prod-network
 
@@ -46,8 +53,11 @@ services:
       KC_HTTP_PORT: "8080"
     volumes:
       - ./keycloak/realm-export.json:/opt/keycloak/data/import/realm-export.json:ro
-    ports:
-      - "8180:8080"
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
     networks:
       - coop-prod-network
 
@@ -58,10 +68,18 @@ services:
     image: ollama/ollama:latest
     container_name: coop-ollama-prod
     restart: unless-stopped
+    mem_limit: 1500m
+    environment:
+      OLLAMA_NUM_PARALLEL: "1"
+      OLLAMA_MAX_LOADED_MODELS: "1"
+      OLLAMA_KEEP_ALIVE: "10m"
     volumes:
       - prod_ollama_data:/root/.ollama
-    ports:
-      - "11434:11434"
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
     networks:
       - coop-prod-network
 
@@ -75,6 +93,7 @@ services:
     image: ghcr.io/${GITHUB_REPOSITORY:-raguiohead/coop-onboarding}/backend:${IMAGE_TAG:-latest}
     container_name: coop-backend-prod
     restart: unless-stopped
+    mem_limit: 450m
     depends_on:
       postgres:
         condition: service_healthy
@@ -87,8 +106,14 @@ services:
       SPRING_AI_OLLAMA_BASE_URL: http://ollama:11434
       SPRING_AI_OLLAMA_CHAT_OPTIONS_MODEL: llama3.2:1b
       SPRING_AI_OLLAMA_EMBEDDING_OPTIONS_MODEL: nomic-embed-text
+      JAVA_OPTS: "-XX:+UseSerialGC -Xms128m -Xmx320m -Djava.security.egd=file:/dev/./urandom"
     expose:
       - "8080"
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
     networks:
       - coop-prod-network
 
@@ -102,10 +127,16 @@ services:
     image: ghcr.io/${GITHUB_REPOSITORY:-raguiohead/coop-onboarding}/frontend:${IMAGE_TAG:-latest}
     container_name: coop-frontend-prod
     restart: unless-stopped
+    mem_limit: 64m
     depends_on:
       - backend
     ports:
       - "80:80"
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
     networks:
       - coop-prod-network
 
