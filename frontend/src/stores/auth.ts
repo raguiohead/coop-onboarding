@@ -3,6 +3,29 @@ import { ref, computed } from 'vue';
 import type { UserProfile, UserRole } from '@/types';
 import { api } from '@/api/client';
 
+// Purga imediata de cache legado no navegador
+if (typeof window !== 'undefined' && window.localStorage) {
+  try {
+    const rawUser = localStorage.getItem('coop_current_user');
+    if (rawUser) {
+      const u = JSON.parse(rawUser);
+      const validEmails = [
+        'lucas.colaborador@coop.local',
+        'mariana.gestora@coop.local',
+        'rodrigo.admin@coop.local',
+      ];
+      if (!validEmails.includes(u.email)) {
+        localStorage.removeItem('coop_current_user');
+        localStorage.removeItem('coop_user_profiles');
+        localStorage.removeItem('coop_auth_token');
+        localStorage.removeItem('coop_refresh_token');
+      }
+    }
+  } catch {
+    localStorage.removeItem('coop_current_user');
+  }
+}
+
 export const defaultMockProfiles: UserProfile[] = [
   {
     id: '6cc3d873-5688-4063-8d52-e88c8421488b',
@@ -10,7 +33,7 @@ export const defaultMockProfiles: UserProfile[] = [
     email: 'lucas.colaborador@coop.local',
     role: 'COLABORADOR',
     department: 'Atendimento & Cooperados',
-    avatarUrl: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80',
+    avatarUrl: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150&auto=format&fit=crop&q=80',
     joinDate: '30/09/2026',
   },
   {
@@ -48,13 +71,14 @@ const profileIdToUsername: Record<string, string> = {
 };
 
 export const useAuthStore = defineStore('auth', () => {
-  // Inicialização segura: se houver perfis legados em cache que não contêm os novos IDs, reseta
+  // Inicialização segura: valida se os perfis em cache são os oficiais
   const savedProfilesRaw = localStorage.getItem('coop_user_profiles');
   let initialProfiles = [...defaultMockProfiles];
   if (savedProfilesRaw) {
     try {
       const parsed = JSON.parse(savedProfilesRaw) as UserProfile[];
-      const hasValidUsers = parsed.some(p => p.email.endsWith('@coop.local') && ['lucas.colaborador@coop.local', 'mariana.gestora@coop.local', 'rodrigo.admin@coop.local'].includes(p.email));
+      const validEmails = ['lucas.colaborador@coop.local', 'mariana.gestora@coop.local', 'rodrigo.admin@coop.local'];
+      const hasValidUsers = parsed.every((p) => validEmails.includes(p.email));
       if (hasValidUsers && parsed.length === 3) {
         initialProfiles = parsed;
       } else {
@@ -68,9 +92,21 @@ export const useAuthStore = defineStore('auth', () => {
   const profiles = ref<UserProfile[]>(initialProfiles);
 
   const savedCurrentUser = localStorage.getItem('coop_current_user');
-  const currentUser = ref<UserProfile>(
-    savedCurrentUser ? JSON.parse(savedCurrentUser) : profiles.value[0]
-  );
+  let initialUser: UserProfile = profiles.value[0];
+  if (savedCurrentUser) {
+    try {
+      const parsed = JSON.parse(savedCurrentUser) as UserProfile;
+      const validEmails = ['lucas.colaborador@coop.local', 'mariana.gestora@coop.local', 'rodrigo.admin@coop.local'];
+      if (validEmails.includes(parsed.email)) {
+        initialUser = parsed;
+      } else {
+        localStorage.removeItem('coop_current_user');
+      }
+    } catch {
+      localStorage.removeItem('coop_current_user');
+    }
+  }
+  const currentUser = ref<UserProfile>(initialUser);
   const token = ref<string | null>(localStorage.getItem('coop_auth_token'));
   const refreshToken = ref<string | null>(localStorage.getItem('coop_refresh_token'));
   const activeUsername = ref<string>('lucas.colaborador');
@@ -190,7 +226,11 @@ export const useAuthStore = defineStore('auth', () => {
               email: userMe.email,
               role: userMe.role as UserRole,
               department: userMe.department || matched?.department || 'Geral',
-              avatarUrl: matched?.avatarUrl || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80',
+              avatarUrl: matched?.avatarUrl || (userMe.role === 'GESTOR'
+                ? 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=150&auto=format&fit=crop&q=80'
+                : userMe.role === 'ADMIN'
+                ? 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&auto=format&fit=crop&q=80'
+                : 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150&auto=format&fit=crop&q=80'),
               joinDate: '30/09/2026',
             });
           }
@@ -287,6 +327,34 @@ export const useAuthStore = defineStore('auth', () => {
     }
   }
 
+  async function fetchCurrentUser(): Promise<UserProfile | null> {
+    if (!token.value) return null;
+    try {
+      const userMe = await api.getCurrentUser();
+      if (userMe) {
+        const matched = profiles.value.find((p) => p.email === userMe.email);
+        const updated: UserProfile = {
+          id: userMe.id,
+          name: userMe.name,
+          email: userMe.email,
+          role: userMe.role as UserRole,
+          department: userMe.department || matched?.department || 'Geral',
+          avatarUrl: matched?.avatarUrl || (userMe.role === 'GESTOR'
+            ? 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=150&auto=format&fit=crop&q=80'
+            : userMe.role === 'ADMIN'
+            ? 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&auto=format&fit=crop&q=80'
+            : 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150&auto=format&fit=crop&q=80'),
+          joinDate: matched?.joinDate || '30/09/2026',
+        };
+        setCurrentUser(updated);
+        return updated;
+      }
+    } catch (err) {
+      console.warn('Erro ao sincronizar perfil do backend via /users/me:', err);
+    }
+    return currentUser.value;
+  }
+
   return {
     currentUser,
     token,
@@ -303,6 +371,7 @@ export const useAuthStore = defineStore('auth', () => {
     roleBadge,
     login,
     logout,
+    fetchCurrentUser,
     switchProfile,
     syncKeycloakToken,
     refreshKeycloakToken,

@@ -265,7 +265,7 @@ export const useTrackStore = defineStore('tracks', () => {
   const completedLessonIds = ref<Set<string>>(new Set());
 
   function loadUserProgress(targetUserId?: string) {
-    const id = targetUserId || authStore.currentUser?.id || '11111111-1111-1111-1111-111111111111';
+    const id = targetUserId || authStore.currentUser?.id || '6cc3d873-5688-4063-8d52-e88c8421488b';
     const key = `coop_completed_lessons_${id}`;
     const saved = localStorage.getItem(key);
     if (saved) {

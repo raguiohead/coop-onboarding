@@ -37,7 +37,7 @@ export interface TeamMember {
   id: string;
   name: string;
   email: string;
-  role: 'COLABORADOR' | 'GESTOR';
+  role: 'COLABORADOR' | 'GESTOR' | 'ADMIN';
   department: string;
   trackTitle: string;
   currentModule: string;
@@ -56,9 +56,9 @@ export interface TeamMember {
 
 const defaultMembers: TeamMember[] = [
   {
-    id: 'user-01',
-    name: 'Ana Carolina Silva',
-    email: 'ana.silva@coop.local',
+    id: '6cc3d873-5688-4063-8d52-e88c8421488b',
+    name: 'Lucas Almeida',
+    email: 'lucas.colaborador@coop.local',
     role: 'COLABORADOR',
     department: 'Atendimento & Cooperados',
     trackTitle: 'Cultura & Governança Cooperativista',
@@ -69,7 +69,7 @@ const defaultMembers: TeamMember[] = [
     progress: 0,
     slaDaysLeft: 14,
     status: 'NO_PRAZO',
-    avatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150&auto=format&fit=crop&q=80',
+    avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150&auto=format&fit=crop&q=80',
     quizzesCompleted: '0 de 3',
     quizScoreAverage: 'Pendente',
     lastActive: 'Aguardando Início',
@@ -83,123 +83,43 @@ const defaultMembers: TeamMember[] = [
     ],
   },
   {
-    id: 'user-02',
-    name: 'Carlos Souza',
-    email: 'carlos.souza@coop.local',
-    role: 'COLABORADOR',
-    department: 'Engenharia de TI & Inovação',
-    trackTitle: 'Arquitetura de Sistemas & Segurança Bancária',
-    currentModule: 'Módulo 1: Fundamentos de Tecnologia Bancária',
-    currentLesson: 'Lição 1.1: Visão Geral do Core Bancário e Barramento de Mensageria',
-    completedCount: 0,
-    totalCount: 6,
-    progress: 0,
-    slaDaysLeft: 14,
-    status: 'NO_PRAZO',
-    avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80',
-    quizzesCompleted: '0 de 3',
-    quizScoreAverage: 'Pendente',
-    lastActive: 'Aguardando Início',
-    lessons: [
-      { module: 'Módulo 1: Fundamentos de Tecnologia Bancária', title: 'Visão Geral do Core Bancário e Barramento de Mensageria', duration: '25 min', completed: false },
-      { module: 'Módulo 1: Fundamentos de Tecnologia Bancária', title: 'Segurança Perimetral, Criptografia e TLS 1.3', duration: '20 min', completed: false },
-      { module: 'Módulo 1: Fundamentos de Tecnologia Bancária', title: 'Topologia em Nuvem Privada e Continuidade de Negócios', duration: '18 min', completed: false },
-      { module: 'Módulo 2: Segurança da Informação', title: 'Resolução CMN nº 4.893 e Política de Cibersegurança', duration: '22 min', completed: false },
-      { module: 'Módulo 2: Segurança da Informação', title: 'Plano de Resposta a Incidentes de Ciberataque e DR', duration: '30 min', completed: false },
-      { module: 'Módulo 2: Segurança da Informação', title: 'Gestão de Identidade, Zero Trust e Keycloak RBAC', duration: '25 min', completed: false },
-    ],
-  },
-  {
-    id: 'user-03',
-    name: 'Juliana Pires',
-    email: 'juliana.pires@coop.local',
-    role: 'COLABORADOR',
-    department: 'Crédito Imobiliário & Rural',
-    trackTitle: 'Políticas de Crédito & Gestão de Riscos',
-    currentModule: 'Módulo 1: Regulamentação de Crédito',
-    currentLesson: 'Lição 1.1: Fundamentos da Resolução CMN 4.557 e Riscos Integrados',
-    completedCount: 0,
-    totalCount: 5,
-    progress: 0,
-    slaDaysLeft: 14,
-    status: 'NO_PRAZO',
-    avatar: 'https://images.unsplash.com/photo-1517841905240-472988babdf9?w=150&auto=format&fit=crop&q=80',
-    quizzesCompleted: '0 de 2',
-    quizScoreAverage: 'Pendente',
-    lastActive: 'Aguardando Início',
-    lessons: [
-      { module: 'Módulo 1: Regulamentação de Crédito', title: 'Fundamentos da Resolução CMN 4.557 e Riscos Integrados', duration: '15 min', completed: false },
-      { module: 'Módulo 1: Regulamentação de Crédito', title: 'Resolução CMN 2.682/1999 e Classificação de Risco (AA a H)', duration: '25 min', completed: false },
-      { module: 'Módulo 1: Regulamentação de Crédito', title: 'Provisão para Devedores Duvidosos (PDD) e Perdas Esperadas', duration: '20 min', completed: false },
-      { module: 'Módulo 2: Modalidades Cooperativas', title: 'Operações de Crédito Rural e Pronaf', duration: '30 min', completed: false },
-      { module: 'Módulo 2: Modalidades Cooperativas', title: 'Alienação Fiduciária de Bens Imóveis e Garantias Reais', duration: '25 min', completed: false },
-    ],
-  },
-  {
-    id: 'user-04',
-    name: 'Lucas Antunes',
-    email: 'lucas.antunes@coop.local',
-    role: 'COLABORADOR',
-    department: 'Controladoria & Contabilidade',
-    trackTitle: 'Contabilidade Cooperativa & Sobras Líquidas',
-    currentModule: 'Módulo 1: COSIF e NBC T 10.8',
-    currentLesson: 'Lição 1.1: Estrutura do Plano de Contas das Instituições Financeiras',
-    completedCount: 0,
-    totalCount: 6,
-    progress: 0,
-    slaDaysLeft: 14,
-    status: 'NO_PRAZO',
-    avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150&auto=format&fit=crop&q=80',
-    quizzesCompleted: '0 de 3',
-    quizScoreAverage: 'Pendente',
-    lastActive: 'Aguardando Início',
-    lessons: [
-      { module: 'Módulo 1: COSIF e NBC T 10.8', title: 'Estrutura do Plano de Contas das Instituições Financeiras', duration: '20 min', completed: false },
-      { module: 'Módulo 1: COSIF e NBC T 10.8', title: 'Contabilização do Capital Social e Quotas-Partes', duration: '15 min', completed: false },
-      { module: 'Módulo 2: Sobras e Perdas', title: 'Cálculo e Destinação das Sobras Líquidas do Exercício', duration: '25 min', completed: false },
-      { module: 'Módulo 2: Sobras e Perdas', title: 'Constituição do FATES e Reserva Legal Obrigatória', duration: '18 min', completed: false },
-      { module: 'Módulo 3: Demonstrações', title: 'Balanço Patrimonial Cooperativo e DVA', duration: '22 min', completed: false },
-      { module: 'Módulo 3: Demonstrações', title: 'Prestação de Contas aos Associados e Auditoria Independente', duration: '20 min', completed: false },
-    ],
-  },
-  {
-    id: 'user-05',
-    name: 'Roberto Mendes',
-    email: 'roberto.mendes@coop.local',
+    id: '670a8cad-248b-41bb-86ff-adb72cab13cb',
+    name: 'Mariana Ribeiro',
+    email: 'mariana.gestora@coop.local',
     role: 'GESTOR',
-    department: 'Gente & Gestão (RH)',
-    trackTitle: 'Liderança & Governança Cooperativa',
+    department: 'Desenvolvimento Humano e Organizacional (DHO)',
+    trackTitle: 'Supervisão de Onboarding & DHO',
     currentModule: 'Supervisão Ativa da Turma',
-    currentLesson: 'Gestor Responsável pela Turma de Integração',
-    completedCount: 0,
-    totalCount: 0,
+    currentLesson: 'Gestora Responsável pela Turma de Integração',
+    completedCount: 6,
+    totalCount: 6,
+    progress: 100,
+    slaDaysLeft: 0,
+    status: 'CONCLUIDO',
+    avatar: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=150&auto=format&fit=crop&q=80',
+    quizzesCompleted: 'Supervisão Ativa',
+    quizScoreAverage: '100% (Gabarito)',
+    lastActive: 'Ativa agora',
+    lessons: [],
+  },
+  {
+    id: '07c89e60-4ea6-4ab0-ac0f-96c0fef51e88',
+    name: 'Rodrigo Martins',
+    email: 'rodrigo.admin@coop.local',
+    role: 'ADMIN',
+    department: 'Governança & TI',
+    trackTitle: 'Governança & Segurança IAM',
+    currentModule: 'Supervisão de Infraestrutura',
+    currentLesson: 'Administrador do Sistema & Keycloak',
+    completedCount: 6,
+    totalCount: 6,
     progress: 100,
     slaDaysLeft: 0,
     status: 'CONCLUIDO',
     avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&auto=format&fit=crop&q=80',
     quizzesCompleted: 'Supervisão Ativa',
-    quizScoreAverage: '100% (Gabarito)',
+    quizScoreAverage: '100%',
     lastActive: 'Ativo agora',
-    lessons: [],
-  },
-  {
-    id: 'user-06',
-    name: 'Fernanda Lima',
-    email: 'fernanda.lima@coop.local',
-    role: 'GESTOR',
-    department: 'Gerência de Crédito & Riscos',
-    trackTitle: 'Supervisão de Crédito e Conformidade BACEN',
-    currentModule: 'Supervisão Ativa de Crédito',
-    currentLesson: 'Supervisão Regulatória e Criação de Quizzes IA',
-    completedCount: 0,
-    totalCount: 0,
-    progress: 100,
-    slaDaysLeft: 0,
-    status: 'CONCLUIDO',
-    avatar: 'https://images.unsplash.com/photo-1580489944761-15a19d654956?w=150&auto=format&fit=crop&q=80',
-    quizzesCompleted: 'Supervisão Ativa',
-    quizScoreAverage: '100% (Gabarito)',
-    lastActive: 'Hoje às 08:30',
     lessons: [],
   },
 ];
@@ -207,14 +127,26 @@ const defaultMembers: TeamMember[] = [
 const authStore = useAuthStore();
 const isQuizModalOpen = ref(false);
 
-// Zerar dados caso ainda esteja na versão anterior
-if (typeof window !== 'undefined' && localStorage.getItem('coop_zeroed_v3') !== 'true') {
-  localStorage.setItem('coop_zeroed_v3', 'true');
-  localStorage.setItem('coop_team_members', JSON.stringify(defaultMembers));
+// Purga de membros legados do LocalStorage
+if (typeof window !== 'undefined') {
+  const savedTeamRaw = localStorage.getItem('coop_team_members');
+  if (savedTeamRaw) {
+    try {
+      const parsed = JSON.parse(savedTeamRaw) as TeamMember[];
+      const validEmails = ['lucas.colaborador@coop.local', 'mariana.gestora@coop.local', 'rodrigo.admin@coop.local'];
+      const hasOnlyValid = parsed.every((m) => validEmails.includes(m.email));
+      if (!hasOnlyValid || parsed.length !== defaultMembers.length) {
+        localStorage.removeItem('coop_team_members');
+        localStorage.removeItem('coop_zeroed_v3');
+      }
+    } catch {
+      localStorage.removeItem('coop_team_members');
+    }
+  }
 }
 
 // Persistência de Membros da Equipe no LocalStorage
-const savedTeam = localStorage.getItem('coop_team_members');
+const savedTeam = typeof window !== 'undefined' ? localStorage.getItem('coop_team_members') : null;
 const teamMembers = ref<TeamMember[]>(savedTeam ? JSON.parse(savedTeam) : defaultMembers);
 
 function saveTeamMembers() {
@@ -222,7 +154,7 @@ function saveTeamMembers() {
 }
 
 // Filtro por Papel na tabela
-const selectedRoleFilter = ref<'TODOS' | 'COLABORADOR' | 'GESTOR'>('TODOS');
+const selectedRoleFilter = ref<'TODOS' | 'COLABORADOR' | 'GESTOR' | 'ADMIN'>('TODOS');
 
 const filteredMembers = computed(() => {
   if (selectedRoleFilter.value === 'TODOS') return teamMembers.value;
@@ -232,6 +164,7 @@ const filteredMembers = computed(() => {
 // KPIs da Turma
 const colaboradoresCount = computed(() => teamMembers.value.filter((m) => m.role === 'COLABORADOR').length);
 const gestoresCount = computed(() => teamMembers.value.filter((m) => m.role === 'GESTOR').length);
+const adminsCount = computed(() => teamMembers.value.filter((m) => m.role === 'ADMIN').length);
 const averageColabProgress = computed(() => {
   const colabs = teamMembers.value.filter((m) => m.role === 'COLABORADOR');
   if (colabs.length === 0) return 0;
@@ -246,7 +179,7 @@ const editingMemberId = ref<string | null>(null);
 const memberForm = ref({
   name: '',
   email: '',
-  role: 'COLABORADOR' as 'COLABORADOR' | 'GESTOR',
+  role: 'COLABORADOR' as 'COLABORADOR' | 'GESTOR' | 'ADMIN',
   department: '',
   trackTitle: 'Cultura & Governança Cooperativista',
   progress: 0,
@@ -521,6 +454,15 @@ function sendSupportReminder(member: TeamMember) {
           >
             Gestores ({{ gestoresCount }})
           </button>
+          <button
+            @click="selectedRoleFilter = 'ADMIN'"
+            :class="[
+              'px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer',
+              selectedRoleFilter === 'ADMIN' ? 'bg-white text-slate-900 shadow-2xs' : 'text-slate-500 hover:text-slate-700'
+            ]"
+          >
+            Administradores ({{ adminsCount }})
+          </button>
         </div>
       </div>
 
@@ -552,7 +494,11 @@ function sendSupportReminder(member: TeamMember) {
                 <span
                   :class="[
                     'px-2 py-0.5 rounded text-[10px] font-bold uppercase border whitespace-nowrap',
-                    member.role === 'GESTOR' ? 'bg-indigo-50 text-indigo-700 border-indigo-200' : 'bg-teal-50 text-teal-700 border-teal-200'
+                    member.role === 'ADMIN'
+                      ? 'bg-rose-50 text-rose-700 border-rose-200'
+                      : member.role === 'GESTOR'
+                      ? 'bg-indigo-50 text-indigo-700 border-indigo-200'
+                      : 'bg-teal-50 text-teal-700 border-teal-200'
                   ]"
                 >
                   {{ member.role }}
@@ -590,11 +536,11 @@ function sendSupportReminder(member: TeamMember) {
                   <span class="font-bold text-slate-700 text-[11px]">{{ member.progress }}%</span>
                 </div>
                 <span v-else class="text-[11px] font-semibold text-slate-400">
-                  Liderança Pedagógica
+                  Liderança Pedagógica & TI
                 </span>
               </td>
               <td class="px-6 py-4 font-medium text-slate-600 whitespace-nowrap">
-                <span v-if="member.role === 'GESTOR'" class="text-slate-400 text-[11px]">
+                <span v-if="member.role === 'GESTOR' || member.role === 'ADMIN'" class="text-slate-400 text-[11px]">
                   Permanente
                 </span>
                 <span v-else-if="member.status === 'CONCLUIDO'" class="text-teal-700 font-semibold flex items-center gap-1">
@@ -725,6 +671,7 @@ function sendSupportReminder(member: TeamMember) {
               >
                 <option value="COLABORADOR">Colaborador em Formação</option>
                 <option value="GESTOR">Gestor de Equipe</option>
+                <option value="ADMIN">Administrador TI & Governança</option>
               </select>
             </div>
 
