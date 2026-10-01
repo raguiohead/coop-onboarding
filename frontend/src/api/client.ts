@@ -151,6 +151,89 @@ class ApiClient {
     }
     return res.json();
   }
+
+  async getAdminUsers(): Promise<AdminUserSummary[]> {
+    const res = await this.fetchWithRetry(`${BASE_URL}/admin/users`);
+    if (!res.ok) {
+      throw new Error(`Falha ao listar membros: ${res.statusText}`);
+    }
+    return res.json();
+  }
+
+  async createAdminUser(payload: CreateAdminUserPayload): Promise<AdminUserSummary> {
+    const res = await this.fetchWithRetry(`${BASE_URL}/admin/users`, {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.detail || `Falha ao criar usuário: ${res.statusText}`);
+    }
+    return res.json();
+  }
+
+  async updateAdminUser(id: string, payload: UpdateAdminUserPayload): Promise<AdminUserSummary> {
+    const res = await this.fetchWithRetry(`${BASE_URL}/admin/users/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(payload),
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.detail || `Falha ao atualizar usuário: ${res.statusText}`);
+    }
+    return res.json();
+  }
+
+  async deleteAdminUser(id: string): Promise<void> {
+    const res = await this.fetchWithRetry(`${BASE_URL}/admin/users/${id}`, {
+      method: 'DELETE',
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.detail || `Falha ao excluir usuário: ${res.statusText}`);
+    }
+  }
+}
+
+export interface AdminUserSummary {
+  id: string;
+  keycloakId: string;
+  name: string;
+  email: string;
+  role: 'COLABORADOR' | 'GESTOR' | 'ADMIN';
+  department: string;
+  jobTitle: string;
+  phone?: string;
+  bio?: string;
+  onboardingStatus: string;
+  completedLessons: number;
+  totalLessons: number;
+  progressPercent: number;
+  enabled: boolean;
+  createdAt: string;
+}
+
+export interface CreateAdminUserPayload {
+  name: string;
+  email: string;
+  role: 'COLABORADOR' | 'GESTOR' | 'ADMIN';
+  department?: string;
+  jobTitle?: string;
+  password?: string;
+  phone?: string;
+  bio?: string;
+}
+
+export interface UpdateAdminUserPayload {
+  name: string;
+  email: string;
+  role: 'COLABORADOR' | 'GESTOR' | 'ADMIN';
+  department?: string;
+  jobTitle?: string;
+  password?: string;
+  phone?: string;
+  bio?: string;
+  enabled?: boolean;
 }
 
 export const api = new ApiClient();

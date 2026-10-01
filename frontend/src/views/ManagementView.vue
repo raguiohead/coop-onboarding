@@ -1,6 +1,7 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue';
+import { ref, computed, onMounted } from 'vue';
 import { useAuthStore } from '@/stores/auth';
+import { api, type AdminUserSummary } from '@/api/client';
 import QuizGeneratorModal from '@/components/ai/QuizGeneratorModal.vue';
 import {
   Users,
@@ -23,6 +24,8 @@ import {
   Eye,
   Send,
   BookOpen,
+  Loader2,
+  Key,
 } from 'lucide-vue-next';
 
 export interface MemberLessonStep {
@@ -145,13 +148,57 @@ if (typeof window !== 'undefined') {
   }
 }
 
-// Persistência de Membros da Equipe no LocalStorage
-const savedTeam = typeof window !== 'undefined' ? localStorage.getItem('coop_team_members') : null;
-const teamMembers = ref<TeamMember[]>(savedTeam ? JSON.parse(savedTeam) : defaultMembers);
+// Persistência e Integração com Backend / Keycloak
+const teamMembers = ref<TeamMember[]>(defaultMembers);
+const isLoadingMembers = ref(false);
+const isSaving = ref(false);
+const feedbackMessage = ref<{ type: 'success' | 'error'; text: string } | null>(null);
 
-function saveTeamMembers() {
-  localStorage.setItem('coop_team_members', JSON.stringify(teamMembers.value));
+async function loadTeamMembers() {
+  if (!authStore.isAuthenticated) return;
+  isLoadingMembers.value = true;
+  try {
+    const remoteUsers = await api.getAdminUsers();
+    if (remoteUsers && remoteUsers.length > 0) {
+      teamMembers.value = remoteUsers.map((u) => ({
+        id: u.id,
+        name: u.name,
+        email: u.email,
+        role: u.role,
+        department: u.department || 'Atendimento & Cooperados',
+        trackTitle: u.role === 'ADMIN'
+          ? 'Governança & Segurança IAM'
+          : u.role === 'GESTOR'
+          ? 'Supervisão de Onboarding & DHO'
+          : 'Cultura & Governança Cooperativista',
+        currentModule: u.role === 'COLABORADOR' ? 'Módulo 1: Princípios e História' : 'Supervisão da Turma',
+        currentLesson: u.role === 'COLABORADOR' ? 'Lição 1.1: Origens em Rochdale e os 7 Princípios da ACI' : 'Supervisão Ativa',
+        completedCount: u.completedLessons,
+        totalCount: u.totalLessons,
+        progress: u.progressPercent,
+        slaDaysLeft: u.role === 'COLABORADOR' ? 14 : 0,
+        status: u.onboardingStatus === 'COMPLETED' ? 'CONCLUIDO' : (u.progressPercent === 0 ? 'NO_PRAZO' : 'ALERTA'),
+        avatar: u.role === 'GESTOR'
+          ? 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=150&auto=format&fit=crop&q=80'
+          : u.role === 'ADMIN'
+          ? 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&auto=format&fit=crop&q=80'
+          : 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150&auto=format&fit=crop&q=80',
+        quizzesCompleted: u.role === 'COLABORADOR' ? `${u.completedLessons} de ${u.totalLessons}` : 'Supervisão Ativa',
+        quizScoreAverage: u.role === 'COLABORADOR' ? 'Pendente' : '100%',
+        lastActive: 'Ativo agora',
+        lessons: [],
+      }));
+    }
+  } catch (err) {
+    console.warn('Fallback para lista de membros local:', err);
+  } finally {
+    isLoadingMembers.value = false;
+  }
 }
+
+onMounted(async () => {
+  await loadTeamMembers();
+});
 
 // Filtro por Papel na tabela
 const selectedRoleFilter = ref<'TODOS' | 'COLABORADOR' | 'GESTOR' | 'ADMIN'>('TODOS');
@@ -180,7 +227,9 @@ const memberForm = ref({
   name: '',
   email: '',
   role: 'COLABORADOR' as 'COLABORADOR' | 'GESTOR' | 'ADMIN',
-  department: '',
+  department: 'Atendimento & Cooperados',
+  jobTitle: 'Assistente de Atendimento',
+  password: '',
   trackTitle: 'Cultura & Governança Cooperativista',
   progress: 0,
   slaDaysLeft: 14,
@@ -194,6 +243,8 @@ function openCreateMemberModal() {
     email: '',
     role: 'COLABORADOR',
     department: 'Atendimento & Cooperados',
+    jobTitle: 'Assistente de Atendimento',
+    password: 'Colab@123',
     trackTitle: 'Cultura & Governança Cooperativista',
     progress: 0,
     slaDaysLeft: 14,
@@ -209,6 +260,8 @@ function openEditMemberModal(member: TeamMember) {
     email: member.email,
     role: member.role,
     department: member.department,
+    jobTitle: member.role === 'ADMIN' ? 'Arquiteto de Soluções & Governança' : (member.role === 'GESTOR' ? 'Coordenadora de DHO' : 'Analista de Atendimento'),
+    password: '',
     trackTitle: member.trackTitle,
     progress: member.progress,
     slaDaysLeft: member.slaDaysLeft,
@@ -217,83 +270,74 @@ function openEditMemberModal(member: TeamMember) {
   isMemberModalOpen.value = true;
 }
 
-function handleSaveMember() {
+async function handleSaveMember() {
   if (!memberForm.value.name.trim() || !memberForm.value.email.trim()) {
     alert('Por favor, preencha o nome e o e-mail do membro.');
     return;
   }
 
-  if (editingMemberId.value) {
-    // Modo Edição
-    const idx = teamMembers.value.findIndex((m) => m.id === editingMemberId.value);
-    if (idx !== -1) {
-      teamMembers.value[idx] = {
-        ...teamMembers.value[idx],
-        ...memberForm.value,
-      };
-      // Atualiza também se existir em authStore.profiles
-      authStore.updateUser(editingMemberId.value, {
+  isSaving.value = true;
+  feedbackMessage.value = null;
+
+  try {
+    if (editingMemberId.value) {
+      // Modo Edição com Sincronização no Keycloak & PostgreSQL
+      await api.updateAdminUser(editingMemberId.value, {
         name: memberForm.value.name,
         email: memberForm.value.email,
         role: memberForm.value.role,
         department: memberForm.value.department,
+        jobTitle: memberForm.value.jobTitle,
+        password: memberForm.value.password || undefined,
       });
+
+      feedbackMessage.value = {
+        type: 'success',
+        text: `Membro ${memberForm.value.name} atualizado com sucesso no Keycloak e no Banco de Dados!`,
+      };
+    } else {
+      // Modo Criação com Sincronização no Keycloak & PostgreSQL
+      await api.createAdminUser({
+        name: memberForm.value.name,
+        email: memberForm.value.email,
+        role: memberForm.value.role,
+        department: memberForm.value.department,
+        jobTitle: memberForm.value.jobTitle,
+        password: memberForm.value.password || 'Colab@123',
+      });
+
+      feedbackMessage.value = {
+        type: 'success',
+        text: `Membro ${memberForm.value.name} provisionado com sucesso no Keycloak IAM e PostgreSQL!`,
+      };
     }
-  } else {
-    // Modo Criação
-    const newId = `user-${Date.now()}`;
-    const avatar = memberForm.value.role === 'GESTOR'
-      ? 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80'
-      : 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150&auto=format&fit=crop&q=80';
 
-    const newMember: TeamMember = {
-      id: newId,
-      name: memberForm.value.name,
-      email: memberForm.value.email,
-      role: memberForm.value.role,
-      department: memberForm.value.department,
-      trackTitle: memberForm.value.trackTitle,
-      currentModule: 'Módulo 1: Introdução Institucional',
-      currentLesson: 'Lição 1.1: Boas-vindas e Visão Geral',
-      completedCount: 0,
-      totalCount: 5,
-      quizScoreAverage: '0%',
-      lastActive: 'Cadastrado agora',
-      lessons: [
-        { module: 'Módulo 1: Introdução Institucional', title: 'Boas-vindas e Princípios Cooperativistas', duration: '15 min', completed: false },
-        { module: 'Módulo 1: Introdução Institucional', title: 'Regulamentação e Governança Básica', duration: '20 min', completed: false },
-      ],
-      progress: memberForm.value.progress,
-      slaDaysLeft: memberForm.value.slaDaysLeft,
-      status: memberForm.value.status,
-      avatar,
-      quizzesCompleted: memberForm.value.role === 'GESTOR' ? 'Supervisão Ativa' : '0 de 3',
-    };
-    teamMembers.value.push(newMember);
-
-    // Registra também no authStore para que possa ser simulado no switcher de perfis
-    authStore.createUser({
-      name: memberForm.value.name,
-      email: memberForm.value.email,
-      role: memberForm.value.role,
-      department: memberForm.value.department,
-      avatarUrl: avatar,
-      joinDate: new Date().toLocaleDateString('pt-BR'),
-    });
+    await loadTeamMembers();
+    isMemberModalOpen.value = false;
+  } catch (err: any) {
+    console.error('Erro ao salvar membro:', err);
+    alert('Erro ao salvar no Keycloak / PostgreSQL: ' + (err.message || err));
+  } finally {
+    isSaving.value = false;
   }
-
-  saveTeamMembers();
-  isMemberModalOpen.value = false;
 }
 
-function handleDeleteMember(memberId: string) {
+async function handleDeleteMember(memberId: string) {
   const member = teamMembers.value.find((m) => m.id === memberId);
   if (!member) return;
 
-  if (confirm(`Tem certeza que deseja remover ${member.name} (${member.role}) do ecossistema?`)) {
-    teamMembers.value = teamMembers.value.filter((m) => m.id !== memberId);
-    saveTeamMembers();
-    authStore.deleteUser(memberId);
+  if (confirm(`Tem certeza que deseja remover ${member.name} (${member.role}) do ecossistema e expurgar do Keycloak e PostgreSQL?`)) {
+    try {
+      await api.deleteAdminUser(memberId);
+      feedbackMessage.value = {
+        type: 'success',
+        text: `Usuário ${member.name} excluído do Keycloak e PostgreSQL com sucesso.`,
+      };
+      await loadTeamMembers();
+    } catch (err: any) {
+      console.error('Erro ao excluir membro:', err);
+      alert('Erro ao excluir membro do Keycloak / PostgreSQL: ' + (err.message || err));
+    }
   }
 }
 
@@ -372,6 +416,26 @@ function sendSupportReminder(member: TeamMember) {
           <span>Criar Quiz com IA</span>
         </button>
       </div>
+    </div>
+
+    <!-- Banner de Feedback Operacional IAM / DB -->
+    <div
+      v-if="feedbackMessage"
+      :class="[
+        'p-4 rounded-2xl border flex items-center justify-between text-xs font-semibold animate-fade-in shadow-xs',
+        feedbackMessage.type === 'success'
+          ? 'bg-emerald-50 text-emerald-900 border-emerald-200'
+          : 'bg-rose-50 text-rose-900 border-rose-200'
+      ]"
+    >
+      <div class="flex items-center space-x-2.5">
+        <CheckCircle2 v-if="feedbackMessage.type === 'success'" class="w-5 h-5 text-emerald-600 shrink-0" />
+        <AlertTriangle v-else class="w-5 h-5 text-rose-600 shrink-0" />
+        <span>{{ feedbackMessage.text }}</span>
+      </div>
+      <button @click="feedbackMessage = null" class="text-slate-400 hover:text-slate-600 p-1 cursor-pointer">
+        <X class="w-4 h-4" />
+      </button>
     </div>
 
     <!-- KPI Summary Cards -->
@@ -481,7 +545,27 @@ function sendSupportReminder(member: TeamMember) {
               <th v-if="authStore.isAdmin" class="px-6 py-3.5 text-right whitespace-nowrap">Ações Admin</th>
             </tr>
           </thead>
-          <tbody class="divide-y divide-slate-100 text-xs">
+          <!-- Skeleton Loading State (Pillar 2 - Motion & Polish) -->
+          <tbody v-if="isLoadingMembers" class="divide-y divide-slate-100 text-xs">
+            <tr v-for="i in 3" :key="'skel-' + i" class="animate-pulse">
+              <td class="px-6 py-4 flex items-center space-x-3 whitespace-nowrap">
+                <div class="w-9 h-9 rounded-full bg-slate-200"></div>
+                <div class="space-y-1.5">
+                  <div class="h-3 w-32 bg-slate-200 rounded"></div>
+                  <div class="h-2.5 w-44 bg-slate-100 rounded"></div>
+                </div>
+              </td>
+              <td class="px-6 py-4"><div class="h-5 w-20 bg-slate-200 rounded"></div></td>
+              <td class="px-6 py-4"><div class="h-4 w-40 bg-slate-200 rounded"></div></td>
+              <td class="px-6 py-4"><div class="h-3 w-28 bg-slate-200 rounded"></div></td>
+              <td class="px-6 py-4"><div class="h-4 w-16 bg-slate-200 rounded"></div></td>
+              <td class="px-6 py-4"><div class="h-4 w-14 bg-slate-200 rounded"></div></td>
+              <td class="px-6 py-4"><div class="h-5 w-20 bg-slate-200 rounded"></div></td>
+              <td class="px-6 py-4"><div class="h-7 w-16 bg-slate-200 rounded-lg mx-auto"></div></td>
+              <td v-if="authStore.isAdmin" class="px-6 py-4"><div class="h-7 w-14 bg-slate-200 rounded-lg ml-auto"></div></td>
+            </tr>
+          </tbody>
+          <tbody v-else class="divide-y divide-slate-100 text-xs">
             <tr v-for="member in filteredMembers" :key="member.id" class="hover:bg-slate-50/60 transition-colors">
               <td class="px-6 py-4 flex items-center space-x-3 whitespace-nowrap">
                 <img :src="member.avatar" class="w-9 h-9 rounded-full object-cover border border-slate-200" />
@@ -688,15 +772,44 @@ function sendSupportReminder(member: TeamMember) {
             </div>
           </div>
 
-          <!-- Departamento -->
-          <div>
-            <label class="block font-bold text-slate-700 mb-1">Área / Departamento:</label>
+          <!-- Departamento e Cargo -->
+          <div class="grid grid-cols-2 gap-3">
+            <div>
+              <label class="block font-bold text-slate-700 mb-1">Área / Departamento:</label>
+              <input
+                v-model="memberForm.department"
+                type="text"
+                required
+                placeholder="Ex: Atendimento, Riscos, TI..."
+                class="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs focus:ring-2 focus:ring-rose-500 focus:outline-none"
+              />
+            </div>
+            <div>
+              <label class="block font-bold text-slate-700 mb-1">Cargo / Função:</label>
+              <input
+                v-model="memberForm.jobTitle"
+                type="text"
+                required
+                placeholder="Ex: Assistente de Operações"
+                class="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs focus:ring-2 focus:ring-rose-500 focus:outline-none"
+              />
+            </div>
+          </div>
+
+          <!-- Credencial Keycloak IAM -->
+          <div class="p-3.5 bg-slate-50 rounded-2xl border border-slate-200/80 space-y-1.5">
+            <div class="flex items-center space-x-1.5 text-slate-700 font-bold">
+              <Key class="w-3.5 h-3.5 text-rose-600" />
+              <span>Credencial de Acesso (Keycloak IAM)</span>
+            </div>
+            <label class="block text-[11px] text-slate-500">
+              {{ editingMemberId ? 'Nova Senha (deixe em branco para não alterar):' : 'Senha Provisória de Acesso:' }}
+            </label>
             <input
-              v-model="memberForm.department"
+              v-model="memberForm.password"
               type="text"
-              required
-              placeholder="Ex: Atendimento, Riscos, TI, RH..."
-              class="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs focus:ring-2 focus:ring-rose-500 focus:outline-none"
+              :placeholder="editingMemberId ? 'Manter senha atual' : 'Ex: Colab@123'"
+              class="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs bg-white focus:ring-2 focus:ring-rose-500 focus:outline-none font-mono"
             />
           </div>
 
@@ -738,16 +851,19 @@ function sendSupportReminder(member: TeamMember) {
           <div class="flex items-center justify-end space-x-2.5 pt-4 border-t border-slate-100">
             <button
               type="button"
+              :disabled="isSaving"
               @click="isMemberModalOpen = false"
-              class="px-4 py-2 rounded-xl border border-slate-200 text-slate-600 font-bold hover:bg-slate-50 transition-colors cursor-pointer"
+              class="px-4 py-2 rounded-xl border border-slate-200 text-slate-600 font-bold hover:bg-slate-50 transition-colors cursor-pointer disabled:opacity-50"
             >
               Cancelar
             </button>
             <button
               type="submit"
-              class="px-5 py-2 rounded-xl bg-rose-600 hover:bg-rose-700 text-white font-bold shadow-md shadow-rose-600/25 transition-all cursor-pointer"
+              :disabled="isSaving"
+              class="px-5 py-2 rounded-xl bg-rose-600 hover:bg-rose-700 text-white font-bold shadow-md shadow-rose-600/25 transition-all cursor-pointer flex items-center space-x-2 disabled:opacity-50"
             >
-              {{ editingMemberId ? 'Salvar Alterações' : 'Cadastrar Membro' }}
+              <Loader2 v-if="isSaving" class="w-4 h-4 animate-spin" />
+              <span>{{ isSaving ? 'Sincronizando...' : (editingMemberId ? 'Salvar Alterações' : 'Cadastrar Membro') }}</span>
             </button>
           </div>
         </form>
