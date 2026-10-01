@@ -19,6 +19,11 @@ public class UserPersistenceAdapter implements UserOutputPort {
     }
 
     @Override
+    public java.util.List<User> findAll() {
+        return userRepository.findAll().stream().map(this::toDomain).toList();
+    }
+
+    @Override
     public Optional<User> findByKeycloakId(String keycloakId) {
         return userRepository.findByKeycloakId(keycloakId).map(this::toDomain);
     }
@@ -31,6 +36,11 @@ public class UserPersistenceAdapter implements UserOutputPort {
     @Override
     public Optional<User> findById(UUID id) {
         return userRepository.findById(id).map(this::toDomain);
+    }
+
+    @Override
+    public void deleteById(UUID id) {
+        userRepository.deleteById(id);
     }
 
     @Override
