@@ -159,7 +159,7 @@ async function loadTeamMembers() {
   isLoadingMembers.value = true;
   try {
     const remoteUsers = await api.getAdminUsers();
-    if (remoteUsers && remoteUsers.length > 0) {
+    if (Array.isArray(remoteUsers)) {
       teamMembers.value = remoteUsers.map((u) => ({
         id: u.id,
         name: u.name,
@@ -325,6 +325,11 @@ async function handleSaveMember() {
 async function handleDeleteMember(memberId: string) {
   const member = teamMembers.value.find((m) => m.id === memberId);
   if (!member) return;
+
+  if (member.email === 'rodrigo.admin@coop.local' || (member.role === 'ADMIN' && member.name.includes('Rodrigo'))) {
+    alert('Ação bloqueada: O administrador principal de governança (rodrigo.admin) não pode ser excluído.');
+    return;
+  }
 
   if (confirm(`Tem certeza que deseja remover ${member.name} (${member.role}) do ecossistema e expurgar do Keycloak e PostgreSQL?`)) {
     try {

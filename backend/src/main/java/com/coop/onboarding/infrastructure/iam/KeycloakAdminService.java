@@ -219,12 +219,27 @@ public class KeycloakAdminService {
 
         try {
             // 1. Busca a role no realm
-            String roleUrl = serverUrl + "/admin/realms/" + realm + "/roles/" + targetRoleName;
-            Map<String, Object> roleObj = restClient.get()
-                    .uri(roleUrl)
-                    .header(HttpHeaders.AUTHORIZATION, "Bearer " + token)
-                    .retrieve()
-                    .body(new ParameterizedTypeReference<>() {});
+            Map<String, Object> roleObj = null;
+            try {
+                String roleUrl = serverUrl + "/admin/realms/" + realm + "/roles/" + targetRoleName;
+                roleObj = restClient.get()
+                        .uri(roleUrl)
+                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + token)
+                        .retrieve()
+                        .body(new ParameterizedTypeReference<>() {});
+            } catch (Exception e) {
+                try {
+                    String altUrl = serverUrl + "/admin/realms/" + realm + "/roles/" + role.name();
+                    roleObj = restClient.get()
+                            .uri(altUrl)
+                            .header(HttpHeaders.AUTHORIZATION, "Bearer " + token)
+                            .retrieve()
+                            .body(new ParameterizedTypeReference<>() {});
+                    if (roleObj != null) {
+                        targetRoleName = role.name();
+                    }
+                } catch (Exception ignored) {}
+            }
 
             if (roleObj != null) {
                 // 2. Remove roles prévias conflitantes

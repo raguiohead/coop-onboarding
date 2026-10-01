@@ -39,9 +39,6 @@ const isQuizModalOpen = ref(false);
 const isTutorialOpen = ref(false);
 
 onMounted(async () => {
-  if (!authStore.token) {
-    await authStore.syncKeycloakToken(authStore.currentUser.id);
-  }
   await trackStore.fetchTracks();
 
   // Se for primeiro acesso do colaborador, abre o tutorial automaticamente

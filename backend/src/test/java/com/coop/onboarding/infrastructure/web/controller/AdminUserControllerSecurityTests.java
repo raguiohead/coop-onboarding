@@ -6,6 +6,7 @@ import com.coop.onboarding.domain.model.UserRole;
 import com.coop.onboarding.infrastructure.security.KeycloakRealmRoleConverter;
 import com.coop.onboarding.infrastructure.web.dto.AdminUserSummaryResponse;
 import com.coop.onboarding.infrastructure.web.dto.CreateUserRequest;
+import com.coop.onboarding.infrastructure.web.dto.UpdateUserRequest;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -25,8 +26,10 @@ import java.util.UUID;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.jwt;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -156,5 +159,82 @@ class AdminUserControllerSecurityTests {
                 .andExpect(jsonPath("$.id").value(newId.toString()))
                 .andExpect(jsonPath("$.name").value("Novo Usuário"))
                 .andExpect(jsonPath("$.role").value("COLABORADOR"));
+    }
+
+    @Test
+    @DisplayName("Administrador (ROLE_ADMIN) atualiza usuário com sucesso e recebe 200 OK")
+    void adminCanUpdateUser() throws Exception {
+        UUID userId = UUID.randomUUID();
+        AdminUserSummaryResponse updated = new AdminUserSummaryResponse(
+                userId,
+                "kc-" + userId,
+                "Usuário Atualizado",
+                "atualizado@coop.local",
+                UserRole.GESTOR,
+                "DHO",
+                "Coordenador",
+                null,
+                null,
+                "COMPLETED",
+                6,
+                6,
+                100,
+                true,
+                OffsetDateTime.now()
+        );
+
+        when(adminUserService.updateMember(any(UUID.class), any(UpdateUserRequest.class))).thenReturn(updated);
+
+        UpdateUserRequest req = new UpdateUserRequest(
+                "Usuário Atualizado",
+                "atualizado@coop.local",
+                UserRole.GESTOR,
+                "DHO",
+                "Coordenador",
+                null,
+                null,
+                null,
+                true
+        );
+
+        mockMvc.perform(put("/api/v1/admin/users/" + userId)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(req))
+                        .with(jwt()
+                                .authorities(new KeycloakRealmRoleConverter())
+                                .jwt(jwt -> jwt.claim("realm_access", Map.of("roles", List.of("ADMIN"))))))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.name").value("Usuário Atualizado"))
+                .andExpect(jsonPath("$.role").value("GESTOR"));
+    }
+
+    @Test
+    @DisplayName("Administrador (ROLE_ADMIN) exclui usuário com sucesso e recebe 204 No Content")
+    void adminCanDeleteUser() throws Exception {
+        UUID userId = UUID.randomUUID();
+
+        mockMvc.perform(delete("/api/v1/admin/users/" + userId)
+                        .with(jwt()
+                                .authorities(new KeycloakRealmRoleConverter())
+                                .jwt(jwt -> jwt.claim("realm_access", Map.of("roles", List.of("ADMIN"))))))
+                .andExpect(status().isNoContent());
+    }
+
+    @Test
+    @DisplayName("Gestor e Colaborador recebem 403 Forbidden ao tentar excluir usuário")
+    void nonAdminCannotDeleteUser() throws Exception {
+        UUID userId = UUID.randomUUID();
+
+        mockMvc.perform(delete("/api/v1/admin/users/" + userId)
+                        .with(jwt()
+                                .authorities(new KeycloakRealmRoleConverter())
+                                .jwt(jwt -> jwt.claim("realm_access", Map.of("roles", List.of("GESTOR"))))))
+                .andExpect(status().isForbidden());
+
+        mockMvc.perform(delete("/api/v1/admin/users/" + userId)
+                        .with(jwt()
+                                .authorities(new KeycloakRealmRoleConverter())
+                                .jwt(jwt -> jwt.claim("realm_access", Map.of("roles", List.of("COLABORADOR"))))))
+                .andExpect(status().isForbidden());
     }
 }

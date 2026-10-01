@@ -78,13 +78,25 @@ const router = createRouter({
 
 router.beforeEach(async (to, from, next) => {
   const authStore = useAuthStore();
+
+  // Rotas públicas (ex: tela de login) são liberadas diretamente
   if (to.meta.public) {
     next();
     return;
   }
-  // Se não possuir token ativo, sincroniza silenciosamente com o perfil atual
-  if (!authStore.token) {
-    await authStore.syncKeycloakToken(authStore.currentUser.id);
+
+  // Se não possuir token ativo ou não estiver autenticado, redireciona SEMPRE para a tela de login
+  if (!authStore.token || !authStore.isAuthenticated) {
+    next('/login');
+    return;
+  }
+
+  // Validação ativa do token de acordo com o Keycloak
+  const isValid = await authStore.validateTokenWithKeycloak();
+  if (!isValid) {
+    authStore.logout();
+    next('/login');
+    return;
   }
 
   // Controle Estrito de Acesso RBAC: impede acesso não autorizado

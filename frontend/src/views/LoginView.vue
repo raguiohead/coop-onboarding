@@ -6,17 +6,26 @@ import {
   Lock,
   User,
   ShieldCheck,
+  Shield,
+  Users,
   AlertCircle,
   ArrowRight,
+  Sparkles,
 } from 'lucide-vue-next';
 
 const router = useRouter();
 const authStore = useAuthStore();
 
-const username = ref('lucas.colaborador');
-const password = ref('Colab@123');
+const username = ref('');
+const password = ref('');
 const isLoading = ref(false);
 const errorMessage = ref('');
+
+function fillCredentials(userVal: string, passVal: string) {
+  username.value = userVal;
+  password.value = passVal;
+  errorMessage.value = '';
+}
 
 async function handleLogin() {
   if (!username.value || !password.value) {
@@ -84,7 +93,7 @@ async function handleLogin() {
                 type="text"
                 required
                 autocomplete="username"
-                placeholder="Ex: lucas.colaborador, mariana.gestora, rodrigo.admin"
+                placeholder="Ex: rodrigo.admin, mariana.gestora, lucas.colaborador"
                 class="block w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-300 focus:outline-hidden focus:ring-2 focus:ring-brand-500 focus:border-brand-500 text-sm text-slate-900 placeholder:text-slate-400 bg-slate-50/50 focus:bg-white transition-colors"
               />
             </div>
@@ -121,8 +130,55 @@ async function handleLogin() {
           </button>
         </form>
 
+        <!-- Perfis de Acesso Rápido para Demonstração e Testes -->
+        <div class="mt-6 pt-5 border-t border-slate-100">
+          <p class="text-[11px] font-bold text-slate-400 uppercase tracking-wider text-center mb-3">
+            Perfis Homologados no Keycloak (Acesso Rápido)
+          </p>
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+            <!-- Admin -->
+            <button
+              type="button"
+              @click="fillCredentials('rodrigo.admin', 'Admin@123')"
+              class="p-2.5 rounded-xl border border-rose-200 bg-rose-50/60 hover:bg-rose-100/80 text-left transition-all cursor-pointer group"
+            >
+              <div class="flex items-center space-x-1.5 text-rose-800 font-bold text-xs">
+                <Shield class="w-3.5 h-3.5 text-rose-600 shrink-0 group-hover:scale-110 transition-transform" />
+                <span>Admin TI</span>
+              </div>
+              <p class="text-[10px] text-slate-500 mt-1 font-mono">rodrigo.admin</p>
+            </button>
+
+            <!-- Gestora -->
+            <button
+              type="button"
+              @click="fillCredentials('mariana.gestora', 'Gestor@123')"
+              class="p-2.5 rounded-xl border border-indigo-200 bg-indigo-50/60 hover:bg-indigo-100/80 text-left transition-all cursor-pointer group"
+            >
+              <div class="flex items-center space-x-1.5 text-indigo-800 font-bold text-xs">
+                <Users class="w-3.5 h-3.5 text-indigo-600 shrink-0 group-hover:scale-110 transition-transform" />
+                <span>Gestora DHO</span>
+              </div>
+              <p class="text-[10px] text-slate-500 mt-1 font-mono">mariana.gestora</p>
+            </button>
+
+            <!-- Colaborador -->
+            <button
+              type="button"
+              @click="fillCredentials('lucas.colaborador', 'Colab@123')"
+              class="p-2.5 rounded-xl border border-teal-200 bg-teal-50/60 hover:bg-teal-100/80 text-left transition-all cursor-pointer group"
+            >
+              <div class="flex items-center space-x-1.5 text-teal-800 font-bold text-xs">
+                <User class="w-3.5 h-3.5 text-teal-600 shrink-0 group-hover:scale-110 transition-transform" />
+                <span>Colaborador</span>
+              </div>
+              <p class="text-[10px] text-slate-500 mt-1 font-mono">lucas.colaborador</p>
+            </button>
+          </div>
+        </div>
+
         <!-- Security footer note -->
-        <div class="mt-8 pt-4 border-t border-slate-100 flex items-center justify-center space-x-2 text-[11px] text-slate-400">
+        <div class="mt-6 pt-4 border-t border-slate-100 flex items-center justify-center space-x-2 text-[11px] text-slate-400">
           <ShieldCheck class="w-4 h-4 text-emerald-600" />
           <span>Autenticação Corporativa Segura · Protocolo OpenID Connect</span>
         </div>

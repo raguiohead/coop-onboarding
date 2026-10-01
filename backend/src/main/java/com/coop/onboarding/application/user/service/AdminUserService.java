@@ -164,6 +164,10 @@ public class AdminUserService {
         UserEntity user = userRepository.findById(userId)
                 .orElseThrow(() -> new IllegalArgumentException("Usuário não encontrado com id: " + userId));
 
+        if ("rodrigo.admin@coop.local".equalsIgnoreCase(user.getEmail())) {
+            throw new IllegalArgumentException("O administrador principal de governança (rodrigo.admin) não pode ser excluído.");
+        }
+
         String keycloakId = user.getKeycloakId();
 
         // 1. Exclui do Keycloak IAM

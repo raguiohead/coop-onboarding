@@ -24,26 +24,26 @@ public class AdminUserController {
     }
 
     @GetMapping
-    @PreAuthorize("hasAnyRole('ROLE_ADMIN', 'ROLE_GESTOR')")
+    @PreAuthorize("hasAnyRole('ROLE_ADMIN', 'ROLE_GESTOR', 'ADMIN', 'GESTOR')")
     public ResponseEntity<List<AdminUserSummaryResponse>> listMembers() {
         return ResponseEntity.ok(adminUserService.listAllMembers());
     }
 
     @GetMapping("/{id}")
-    @PreAuthorize("hasAnyRole('ROLE_ADMIN', 'ROLE_GESTOR')")
+    @PreAuthorize("hasAnyRole('ROLE_ADMIN', 'ROLE_GESTOR', 'ADMIN', 'GESTOR')")
     public ResponseEntity<AdminUserSummaryResponse> getMember(@PathVariable UUID id) {
         return ResponseEntity.ok(adminUserService.getMemberById(id));
     }
 
     @PostMapping
-    @PreAuthorize("hasRole('ROLE_ADMIN')")
+    @PreAuthorize("hasAnyRole('ROLE_ADMIN', 'ADMIN')")
     public ResponseEntity<AdminUserSummaryResponse> createMember(@Valid @RequestBody CreateUserRequest request) {
         AdminUserSummaryResponse created = adminUserService.createMember(request);
         return ResponseEntity.status(HttpStatus.CREATED).body(created);
     }
 
     @PutMapping("/{id}")
-    @PreAuthorize("hasRole('ROLE_ADMIN')")
+    @PreAuthorize("hasAnyRole('ROLE_ADMIN', 'ADMIN')")
     public ResponseEntity<AdminUserSummaryResponse> updateMember(
             @PathVariable UUID id,
             @Valid @RequestBody UpdateUserRequest request
@@ -52,7 +52,7 @@ public class AdminUserController {
     }
 
     @DeleteMapping("/{id}")
-    @PreAuthorize("hasRole('ROLE_ADMIN')")
+    @PreAuthorize("hasAnyRole('ROLE_ADMIN', 'ADMIN')")
     public ResponseEntity<Void> deleteMember(@PathVariable UUID id) {
         adminUserService.deleteMember(id);
         return ResponseEntity.noContent().build();

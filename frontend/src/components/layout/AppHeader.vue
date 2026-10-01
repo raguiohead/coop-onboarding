@@ -97,7 +97,7 @@ onMounted(async () => {
               active-class="!text-brand-700 !bg-brand-50 shadow-2xs font-bold"
             >
               <Users class="w-4 h-4" />
-              <span>Gestão de Turma</span>
+              <span>{{ authStore.isAdmin ? 'Gestão de Usuários' : 'Gestão de Turma' }}</span>
             </router-link>
 
             <router-link
