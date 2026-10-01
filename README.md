@@ -26,13 +26,15 @@ A plataforma **coop-onboarding** está **publicada e em execução 24/7** em uma
 
 ### 🔑 Credenciais para Teste Rápido
 
-Você pode entrar e testar imediatamente com qualquer um dos 3 perfis corporativos:
+Você pode entrar e testar imediatamente com qualquer um dos 3 perfis corporativos oficiais:
 
 | Usuário | Senha | Perfil (Role) | O que testar na demonstração |
 | :--- | :--- | :--- | :--- |
-| **`colaborador`** | `colab123` | Colaborador | Trilhas de formação, leitor imersivo, **Guia Rápido de Onboarding**, quizzes de fixação e **Tutor IA com Streaming SSE em tempo real**. |
-| **`gestor`** | `gestor123` | Gestor | Dashboard analítico de desempenho dos colaboradores da equipe, progresso de trilhas e **Gerador de Quizzes pedagógicos via IA**. |
-| **`admin`** | `admin123` | Administrador | Todos os recursos de Gestor + **Painel de Governança e Saúde dos Serviços** (status da API, PostgreSQL/pgvector, IA local Ollama e métricas). |
+| **`rodrigo.admin`** | `Admin@123` | Administrador (`ROLE_ADMIN`) | **Gestão de Usuários (CRUD completo sincronizado com Keycloak e DB)**, Painel de Governança e Saúde dos Serviços, métricas e recursos de Gestor. |
+| **`mariana.gestora`** | `Gestor@123` | Gestora (`ROLE_GESTOR`) | Dashboard analítico de desempenho dos colaboradores da equipe, progresso de trilhas e **Gerador de Quizzes pedagógicos via IA**. |
+| **`lucas.colaborador`** | `Colab@123` | Colaborador (`ROLE_COLABORADOR`) | Trilhas de formação, leitor imersivo, **Guia Rápido de Onboarding**, quizzes de fixação e **Tutor IA com Streaming SSE em tempo real**. |
+
+> 💡 **Dica de Acesso Rápido:** A tela de login dispõe de botões interativos (*chips*) para preenchimento imediato das credenciais de Rodrigo, Mariana ou Lucas com apenas 1 clique!
 
 ---
 
@@ -53,13 +55,15 @@ Combinando os padrões rigorosos de segurança e resiliência da arquitetura ent
 
 ## 👥 Credenciais & Perfis de Acesso
 
-O ambiente corporativo já vem pré-configurado com 3 perfis completos no Keycloak:
+O ambiente corporativo já vem provisionado com 3 perfis reais, integrados bidirecionalmente entre o banco de dados PostgreSQL (`public.users` e `identity.user_profiles`) e o Keycloak IAM:
 
-| Usuário | Senha | Papel (Role) | Escopo de Acesso & Funcionalidades |
-| :--- | :--- | :--- | :--- |
-| **`colaborador`** | `colab123` | `ROLE_COLABORADOR` | **Experiência do Aprendiz:** Acesso às trilhas de formação, leitor imersivo de lições, **Guia Rápido de Onboarding**, realização de quizzes de fixação e **Tutor IA** em tempo real com streaming. |
-| **`gestor`** | `gestor123` | `ROLE_GESTOR` | **Gestão de Equipe & Aprendizado:** Dashboard analítico de desempenho dos colaboradores da equipe, acompanhamento de taxas de conclusão, consulta pedagógica de trilhas e gerador de quizzes via IA. |
-| **`admin`** | `admin123` | `ROLE_ADMIN` | **Super Administrador:** Possui **todos os privilégios de Gestor** (consulta pedagógica de trilhas, geração de quizzes) **+ Painel de Administração e Governança do Sistema** (status do PostgreSQL/pgvector, métricas da IA local Ollama, Ray Cloud status e auditoria). |
+| Usuário | Senha | Nome | Papel (Role) | Escopo de Acesso & Funcionalidades |
+| :--- | :--- | :--- | :--- | :--- |
+| **`rodrigo.admin`** | `Admin@123` | Rodrigo Mendes | `ROLE_ADMIN` | **Super Administrador:** Possui **Gestão Completa de Usuários** (criação, edição e exclusão de contas sincronizadas em tempo real no Keycloak e no PostgreSQL), **Painel de Governança e Saúde dos Serviços** (status do PostgreSQL/pgvector, métricas da IA local Ollama e diagnósticos de infraestrutura) e **todos os privilégios pedagógicos de Gestor**. |
+| **`mariana.gestora`** | `Gestor@123` | Mariana Silva | `ROLE_GESTOR` | **Gestão de Equipe & Aprendizado:** Dashboard analítico de desempenho dos colaboradores da equipe, acompanhamento de taxas de conclusão, consulta pedagógica de trilhas e **Gerador de Quizzes pedagógicos via IA**. |
+| **`lucas.colaborador`** | `Colab@123` | Lucas Ferreira | `ROLE_COLABORADOR` | **Experiência do Aprendiz:** Acesso às trilhas de formação, leitor imersivo de lições, **Guia Rápido de Onboarding**, realização de quizzes de fixação e **Tutor IA** em tempo real com streaming. |
+
+> 🛡️ **Segurança e Validação de Token:** A aplicação implementa validação ativa de token JWT junto ao endpoint de UserInfo do Keycloak (`/protocol/openid-connect/userinfo`). Cada ciclo de navegação protegida verifica a autenticidade e validade do token. Em caso de expiração ou revogação, o usuário é redirecionado imediatamente para a tela de Login com armazenamento de sessão isolado em `sessionStorage`.
 
 ---
 
@@ -71,17 +75,19 @@ flowchart TD
         SPA["Dashboard & Lesson Viewer"]
         AIDrawer["AI Tutor Drawer (Resizable 420-1200px + Skeleton)"]
         QuizModal["Quiz Generator Modal"]
+        UserMgmt["Cockpit de Gestão & Usuários (/gestao)"]
         AdminPanel["Admin & System Health Console"]
     end
 
     subgraph Security["Identity & Access Management"]
-        KC["Keycloak 25 (OAuth2 / JWT / RBAC)"]
+        KC["Keycloak 25 (OAuth2 / JWT / RBAC / Admin REST)"]
     end
 
     subgraph Backend["Core API (Java 21 + Spring Boot 3.3.5)"]
         ResourceServer["Spring Security Resource Server (JWT Filter)"]
         TrackModule["Domain: Track & Content"]
         UserModule["Domain: User & Enrollment"]
+        AdminModule["Admin Module: User CRUD & Keycloak Sync"]
         AIModule["Spring AI Engine (RAG Tutor & Quiz Generator)"]
         CacheModule["In-Memory Streaming Cache"]
     end
@@ -92,20 +98,24 @@ flowchart TD
     end
 
     subgraph Database["Persistence & Vector Store"]
-        Postgres["PostgreSQL 16"]
+        Postgres["PostgreSQL 16 (public + identity schemas)"]
         PgVector["pgvector (HNSW Index / Cosine Similarity)"]
     end
 
-    SPA -->|"1. Authenticate"| KC
+    SPA -->|"1. Authenticate & Token Validation"| KC
     SPA -->|"2. Bearer JWT API Call"| ResourceServer
-    AIDrawer -->|"3. Stream SSE /api/v1/ai/tutor/stream"| AIModule
-    QuizModal -->|"4. Generate Quiz /api/v1/ai/quiz/generate"| AIModule
-    AdminPanel -->|"5. Health & Services /actuator/health"| ResourceServer
+    UserMgmt -->|"3. Admin User CRUD /api/v1/admin/users"| ResourceServer
+    AIDrawer -->|"4. Stream SSE /api/v1/ai/tutor/stream"| AIModule
+    QuizModal -->|"5. Generate Quiz /api/v1/ai/quiz/generate"| AIModule
+    AdminPanel -->|"6. Health & Services /actuator/health"| ResourceServer
 
     ResourceServer --> TrackModule
     ResourceServer --> UserModule
+    ResourceServer --> AdminModule
     ResourceServer --> AIModule
 
+    AdminModule -->|"Bidirectional Sync (Users/Roles/Credentials)"| KC
+    AdminModule -->|"users & user_profiles"| Postgres
     AIModule --> CacheModule
     TrackModule --> Postgres
     UserModule --> Postgres
@@ -132,10 +142,9 @@ A plataforma opera com inferência de IA 100% on-premise, garantindo conformidad
 ## 🚀 Como Executar o Ecossistema Completo
 
 ### Pré-requisitos
-- **Java 21 LTS**
-- **Node.js 20+**
-- **Docker & Docker Compose**
-- **Ollama** com os modelos baixados:
+- **Docker & Docker Compose** (para execução em contêineres)
+- **Java 21 LTS** e **Node.js 20+** (necessários apenas para desenvolvimento híbrido fora do Docker)
+- **Ollama** com os modelos locais baixados:
   ```bash
   ollama pull nomic-embed-text
   ollama pull llama3.2:1b
@@ -143,32 +152,53 @@ A plataforma opera com inferência de IA 100% on-premise, garantindo conformidad
 
 ---
 
-### 1. Subir Infraestrutura (PostgreSQL + pgvector e Keycloak)
+### 🌟 Opção A: Execução Completa via Docker Compose Local (Recomendado)
+
+Você pode subir toda a plataforma de ponta a ponta (Frontend, Backend, Keycloak e PostgreSQL/pgvector) com um único comando:
+
+```bash
+docker compose -f docker/docker-compose.local.yml up -d --build
+```
+
+#### Serviços e Portas Locais Ativas:
+| Serviço | URL / Endereço | Descrição / Credenciais Padrão |
+| :--- | :--- | :--- |
+| **Frontend SPA (Nginx)** | [http://localhost](http://localhost) | Interface Web corporativa em Vue 3 (porta 80). Proxy reverso configurado para `/api/` e `/auth/`. |
+| **Backend API (Spring Boot)** | [http://localhost:8080](http://localhost:8080) | API REST Java 21. Health Check: `/actuator/health` \| Swagger UI: `/swagger-ui.html` |
+| **Keycloak IAM** | [http://localhost:8180](http://localhost:8180) | Servidor de Identidade OpenID Connect. Admin Console: `admin` / `admin` |
+| **PostgreSQL 16 + pgvector** | `localhost:5432` | Banco relacional e vetorial. Usuário: `coop_user` \| Senha: `coop_pass` \| DB: `coop_onboarding` |
+
+Para encerrar os contêineres locais:
+```bash
+docker compose -f docker/docker-compose.local.yml down
+```
+
+---
+
+### 🛠️ Opção B: Desenvolvimento Híbrido (Local / IDE)
+
+Se preferir rodar o Backend e Frontend diretamente na máquina de desenvolvimento:
+
+#### 1. Subir Infraestrutura (PostgreSQL + pgvector e Keycloak)
 Na raiz do projeto:
 ```bash
 docker compose -f docker/docker-compose.yml up -d
 ```
-- **PostgreSQL:** `localhost:5432` (Database: `coop_onboarding`, Usuário: `coop_user`, Senha: `coop_pass`)
-- **Keycloak:** `http://localhost:8180` (Realm `coop-onboarding` importado automaticamente com os 3 perfis prontos)
 
----
-
-### 2. Executar o Backend (Spring Boot 3.3.5)
+#### 2. Executar o Backend (Spring Boot 3.3.5)
 ```bash
 cd backend
 ./mvnw spring-boot:run
 ```
 A API iniciará em `http://localhost:8080`.
 
-#### Rodar Suíte Completa de Testes Automatizados (38 testes):
+#### Rodar Suíte Completa de Testes Automatizados (com Testcontainers & MockMvc):
 ```bash
 ./mvnw clean test
 ```
-*(Executa testes de conformidade arquitetural com ArchUnit, testes de integração com Testcontainers contra PostgreSQL + pgvector real e testes de segurança MockMvc).*
+*(Executa testes de conformidade arquitetural ArchUnit, testes com Testcontainers contra PostgreSQL real e testes de segurança do AdminUserControllerSecurityTests).*
 
----
-
-### 3. Executar o Frontend (Vue 3 + Vite)
+#### 3. Executar o Frontend (Vue 3 + Vite)
 Em outro terminal:
 ```bash
 cd frontend
@@ -176,6 +206,7 @@ npm install
 npm run dev
 ```
 A interface iniciará em `http://localhost:5173`.
+
 
 #### Compilar para Produção:
 ```bash
@@ -241,6 +272,15 @@ docker compose -f docker/docker-compose.prod.yml up -d
   - Fase de carregamento com *Skeleton Shimmer Card*;
   - Guia Rápido contextual exclusivo para perfil Colaborador;
   - Console de status de serviços e base vetorial para perfil Admin.
+- [x] **Fase 6: Governança de Identidade, Gestão de Usuários e Segurança Canônica**:
+  - Provisionamento e sincronização bidirecional de usuários entre aplicação e Keycloak IAM;
+  - Cockpit de Gestão de Usuários completo exclusivo para Administradores (`/gestao`) com criação, edição, exclusão e redefinição de credenciais;
+  - Proteção de segurança ativa contra auto-exclusão do administrador logado e salvaguarda da conta mestre `rodrigo.admin`;
+  - Validação ativa de token OpenID Connect via endpoint UserInfo (`/protocol/openid-connect/userinfo`) e início estrito na tela de Login;
+  - Sessões isoladas via `sessionStorage` eliminando auto-logins fantasmas e retenção indevida de credenciais;
+  - *Quick-fill chips* interativos na tela de Login para alternância instantânea entre os perfis Rodrigo (Admin), Mariana (Gestora) e Lucas (Colaborador);
+  - Cobertura de testes de segurança com `AdminUserControllerSecurityTests` e pipeline sincronizada nas branches `develop`, `staging` e `main` com deploy na nuvem Oracle Cloud.
+
 
 ---
 
