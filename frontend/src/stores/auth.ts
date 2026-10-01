@@ -202,12 +202,22 @@ export const useAuthStore = defineStore('auth', () => {
           activeUsername.value = userInfo.preferred_username;
         }
         return true;
-      } else if (res.status === 401) {
-        console.warn('[Keycloak Auth] UserInfo retornou 401 Unauthorized. Tentando refresh...');
+      } else if (res.status === 401 || res.status === 403) {
+        console.warn(`[Keycloak Auth] UserInfo retornou ${res.status}. Tentando refresh do token...`);
         const renewedToken = await refreshKeycloakToken();
         if (renewedToken) {
           return true;
         }
+        // Se ainda for válido pelo payload local JWT, mantém a sessão ativa temporariamente
+        try {
+          const parts = token.value?.split('.') || [];
+          if (parts.length === 3) {
+            const payloadJson = JSON.parse(atob(parts[1].replace(/-/g, '+').replace(/_/g, '/')));
+            if (payloadJson.exp && Date.now() < payloadJson.exp * 1000) {
+              return true;
+            }
+          }
+        } catch {}
         logout();
         return false;
       }
@@ -242,6 +252,7 @@ export const useAuthStore = defineStore('auth', () => {
         grant_type: 'password',
         username: cleanUser,
         password: pass,
+        scope: 'openid profile email',
       });
 
       const res = await fetch(tokenUrl, {
@@ -319,6 +330,7 @@ export const useAuthStore = defineStore('auth', () => {
           client_id: 'coop-frontend',
           grant_type: 'refresh_token',
           refresh_token: refreshToken.value,
+          scope: 'openid profile email',
         });
         const res = await fetch(tokenUrl, {
           method: 'POST',
