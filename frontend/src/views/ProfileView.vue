@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue';
+import { ref, computed, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 import { useAuthStore } from '@/stores/auth';
 import { useTrackStore } from '@/stores/tracks';
@@ -133,6 +133,12 @@ const totalLessons = computed(() => trackStore.totalLessonsCount);
 
 const certificateHash = computed(() => {
   return `COOP-CERT-2026-${userMatricula.value.replace('#', '')}-BACEN-9941`;
+});
+
+onMounted(async () => {
+  if (authStore.isAuthenticated) {
+    await authStore.fetchCurrentUser();
+  }
 });
 </script>
 

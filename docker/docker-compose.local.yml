@@ -71,6 +71,7 @@ services:
       SPRING_DATASOURCE_PASSWORD: coop_pass
       SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER_URI: http://keycloak:8080/realms/coop-onboarding
       SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_JWK_SET_URI: http://keycloak:8080/realms/coop-onboarding/protocol/openid-connect/certs
+      KEYCLOAK_SERVER_URL: http://keycloak:8080
       SPRING_AI_OLLAMA_BASE_URL: http://host.docker.internal:11434
       SPRING_AI_OLLAMA_CHAT_OPTIONS_MODEL: llama3.2:1b
       SPRING_AI_OLLAMA_EMBEDDING_OPTIONS_MODEL: nomic-embed-text

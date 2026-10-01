@@ -1,6 +1,7 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue';
+import { ref, computed, onMounted } from 'vue';
 import { useAuthStore } from '@/stores/auth';
+import { api, type AdminUserSummary } from '@/api/client';
 import QuizGeneratorModal from '@/components/ai/QuizGeneratorModal.vue';
 import {
   Users,
@@ -23,6 +24,8 @@ import {
   Eye,
   Send,
   BookOpen,
+  Loader2,
+  Key,
 } from 'lucide-vue-next';
 
 export interface MemberLessonStep {
@@ -37,7 +40,7 @@ export interface TeamMember {
   id: string;
   name: string;
   email: string;
-  role: 'COLABORADOR' | 'GESTOR';
+  role: 'COLABORADOR' | 'GESTOR' | 'ADMIN';
   department: string;
   trackTitle: string;
   currentModule: string;
@@ -56,9 +59,9 @@ export interface TeamMember {
 
 const defaultMembers: TeamMember[] = [
   {
-    id: 'user-01',
-    name: 'Ana Carolina Silva',
-    email: 'ana.silva@coop.local',
+    id: '6cc3d873-5688-4063-8d52-e88c8421488b',
+    name: 'Lucas Almeida',
+    email: 'lucas.colaborador@coop.local',
     role: 'COLABORADOR',
     department: 'Atendimento & Cooperados',
     trackTitle: 'Cultura & Governança Cooperativista',
@@ -69,7 +72,7 @@ const defaultMembers: TeamMember[] = [
     progress: 0,
     slaDaysLeft: 14,
     status: 'NO_PRAZO',
-    avatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150&auto=format&fit=crop&q=80',
+    avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150&auto=format&fit=crop&q=80',
     quizzesCompleted: '0 de 3',
     quizScoreAverage: 'Pendente',
     lastActive: 'Aguardando Início',
@@ -83,123 +86,43 @@ const defaultMembers: TeamMember[] = [
     ],
   },
   {
-    id: 'user-02',
-    name: 'Carlos Souza',
-    email: 'carlos.souza@coop.local',
-    role: 'COLABORADOR',
-    department: 'Engenharia de TI & Inovação',
-    trackTitle: 'Arquitetura de Sistemas & Segurança Bancária',
-    currentModule: 'Módulo 1: Fundamentos de Tecnologia Bancária',
-    currentLesson: 'Lição 1.1: Visão Geral do Core Bancário e Barramento de Mensageria',
-    completedCount: 0,
-    totalCount: 6,
-    progress: 0,
-    slaDaysLeft: 14,
-    status: 'NO_PRAZO',
-    avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80',
-    quizzesCompleted: '0 de 3',
-    quizScoreAverage: 'Pendente',
-    lastActive: 'Aguardando Início',
-    lessons: [
-      { module: 'Módulo 1: Fundamentos de Tecnologia Bancária', title: 'Visão Geral do Core Bancário e Barramento de Mensageria', duration: '25 min', completed: false },
-      { module: 'Módulo 1: Fundamentos de Tecnologia Bancária', title: 'Segurança Perimetral, Criptografia e TLS 1.3', duration: '20 min', completed: false },
-      { module: 'Módulo 1: Fundamentos de Tecnologia Bancária', title: 'Topologia em Nuvem Privada e Continuidade de Negócios', duration: '18 min', completed: false },
-      { module: 'Módulo 2: Segurança da Informação', title: 'Resolução CMN nº 4.893 e Política de Cibersegurança', duration: '22 min', completed: false },
-      { module: 'Módulo 2: Segurança da Informação', title: 'Plano de Resposta a Incidentes de Ciberataque e DR', duration: '30 min', completed: false },
-      { module: 'Módulo 2: Segurança da Informação', title: 'Gestão de Identidade, Zero Trust e Keycloak RBAC', duration: '25 min', completed: false },
-    ],
-  },
-  {
-    id: 'user-03',
-    name: 'Juliana Pires',
-    email: 'juliana.pires@coop.local',
-    role: 'COLABORADOR',
-    department: 'Crédito Imobiliário & Rural',
-    trackTitle: 'Políticas de Crédito & Gestão de Riscos',
-    currentModule: 'Módulo 1: Regulamentação de Crédito',
-    currentLesson: 'Lição 1.1: Fundamentos da Resolução CMN 4.557 e Riscos Integrados',
-    completedCount: 0,
-    totalCount: 5,
-    progress: 0,
-    slaDaysLeft: 14,
-    status: 'NO_PRAZO',
-    avatar: 'https://images.unsplash.com/photo-1517841905240-472988babdf9?w=150&auto=format&fit=crop&q=80',
-    quizzesCompleted: '0 de 2',
-    quizScoreAverage: 'Pendente',
-    lastActive: 'Aguardando Início',
-    lessons: [
-      { module: 'Módulo 1: Regulamentação de Crédito', title: 'Fundamentos da Resolução CMN 4.557 e Riscos Integrados', duration: '15 min', completed: false },
-      { module: 'Módulo 1: Regulamentação de Crédito', title: 'Resolução CMN 2.682/1999 e Classificação de Risco (AA a H)', duration: '25 min', completed: false },
-      { module: 'Módulo 1: Regulamentação de Crédito', title: 'Provisão para Devedores Duvidosos (PDD) e Perdas Esperadas', duration: '20 min', completed: false },
-      { module: 'Módulo 2: Modalidades Cooperativas', title: 'Operações de Crédito Rural e Pronaf', duration: '30 min', completed: false },
-      { module: 'Módulo 2: Modalidades Cooperativas', title: 'Alienação Fiduciária de Bens Imóveis e Garantias Reais', duration: '25 min', completed: false },
-    ],
-  },
-  {
-    id: 'user-04',
-    name: 'Lucas Antunes',
-    email: 'lucas.antunes@coop.local',
-    role: 'COLABORADOR',
-    department: 'Controladoria & Contabilidade',
-    trackTitle: 'Contabilidade Cooperativa & Sobras Líquidas',
-    currentModule: 'Módulo 1: COSIF e NBC T 10.8',
-    currentLesson: 'Lição 1.1: Estrutura do Plano de Contas das Instituições Financeiras',
-    completedCount: 0,
-    totalCount: 6,
-    progress: 0,
-    slaDaysLeft: 14,
-    status: 'NO_PRAZO',
-    avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150&auto=format&fit=crop&q=80',
-    quizzesCompleted: '0 de 3',
-    quizScoreAverage: 'Pendente',
-    lastActive: 'Aguardando Início',
-    lessons: [
-      { module: 'Módulo 1: COSIF e NBC T 10.8', title: 'Estrutura do Plano de Contas das Instituições Financeiras', duration: '20 min', completed: false },
-      { module: 'Módulo 1: COSIF e NBC T 10.8', title: 'Contabilização do Capital Social e Quotas-Partes', duration: '15 min', completed: false },
-      { module: 'Módulo 2: Sobras e Perdas', title: 'Cálculo e Destinação das Sobras Líquidas do Exercício', duration: '25 min', completed: false },
-      { module: 'Módulo 2: Sobras e Perdas', title: 'Constituição do FATES e Reserva Legal Obrigatória', duration: '18 min', completed: false },
-      { module: 'Módulo 3: Demonstrações', title: 'Balanço Patrimonial Cooperativo e DVA', duration: '22 min', completed: false },
-      { module: 'Módulo 3: Demonstrações', title: 'Prestação de Contas aos Associados e Auditoria Independente', duration: '20 min', completed: false },
-    ],
-  },
-  {
-    id: 'user-05',
-    name: 'Roberto Mendes',
-    email: 'roberto.mendes@coop.local',
+    id: '670a8cad-248b-41bb-86ff-adb72cab13cb',
+    name: 'Mariana Ribeiro',
+    email: 'mariana.gestora@coop.local',
     role: 'GESTOR',
-    department: 'Gente & Gestão (RH)',
-    trackTitle: 'Liderança & Governança Cooperativa',
+    department: 'Desenvolvimento Humano e Organizacional (DHO)',
+    trackTitle: 'Supervisão de Onboarding & DHO',
     currentModule: 'Supervisão Ativa da Turma',
-    currentLesson: 'Gestor Responsável pela Turma de Integração',
-    completedCount: 0,
-    totalCount: 0,
+    currentLesson: 'Gestora Responsável pela Turma de Integração',
+    completedCount: 6,
+    totalCount: 6,
+    progress: 100,
+    slaDaysLeft: 0,
+    status: 'CONCLUIDO',
+    avatar: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=150&auto=format&fit=crop&q=80',
+    quizzesCompleted: 'Supervisão Ativa',
+    quizScoreAverage: '100% (Gabarito)',
+    lastActive: 'Ativa agora',
+    lessons: [],
+  },
+  {
+    id: '07c89e60-4ea6-4ab0-ac0f-96c0fef51e88',
+    name: 'Rodrigo Martins',
+    email: 'rodrigo.admin@coop.local',
+    role: 'ADMIN',
+    department: 'Governança & TI',
+    trackTitle: 'Governança & Segurança IAM',
+    currentModule: 'Supervisão de Infraestrutura',
+    currentLesson: 'Administrador do Sistema & Keycloak',
+    completedCount: 6,
+    totalCount: 6,
     progress: 100,
     slaDaysLeft: 0,
     status: 'CONCLUIDO',
     avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&auto=format&fit=crop&q=80',
     quizzesCompleted: 'Supervisão Ativa',
-    quizScoreAverage: '100% (Gabarito)',
+    quizScoreAverage: '100%',
     lastActive: 'Ativo agora',
-    lessons: [],
-  },
-  {
-    id: 'user-06',
-    name: 'Fernanda Lima',
-    email: 'fernanda.lima@coop.local',
-    role: 'GESTOR',
-    department: 'Gerência de Crédito & Riscos',
-    trackTitle: 'Supervisão de Crédito e Conformidade BACEN',
-    currentModule: 'Supervisão Ativa de Crédito',
-    currentLesson: 'Supervisão Regulatória e Criação de Quizzes IA',
-    completedCount: 0,
-    totalCount: 0,
-    progress: 100,
-    slaDaysLeft: 0,
-    status: 'CONCLUIDO',
-    avatar: 'https://images.unsplash.com/photo-1580489944761-15a19d654956?w=150&auto=format&fit=crop&q=80',
-    quizzesCompleted: 'Supervisão Ativa',
-    quizScoreAverage: '100% (Gabarito)',
-    lastActive: 'Hoje às 08:30',
     lessons: [],
   },
 ];
@@ -207,22 +130,78 @@ const defaultMembers: TeamMember[] = [
 const authStore = useAuthStore();
 const isQuizModalOpen = ref(false);
 
-// Zerar dados caso ainda esteja na versão anterior
-if (typeof window !== 'undefined' && localStorage.getItem('coop_zeroed_v3') !== 'true') {
-  localStorage.setItem('coop_zeroed_v3', 'true');
-  localStorage.setItem('coop_team_members', JSON.stringify(defaultMembers));
+// Purga de membros legados do LocalStorage
+if (typeof window !== 'undefined') {
+  const savedTeamRaw = localStorage.getItem('coop_team_members');
+  if (savedTeamRaw) {
+    try {
+      const parsed = JSON.parse(savedTeamRaw) as TeamMember[];
+      const validEmails = ['lucas.colaborador@coop.local', 'mariana.gestora@coop.local', 'rodrigo.admin@coop.local'];
+      const hasOnlyValid = parsed.every((m) => validEmails.includes(m.email));
+      if (!hasOnlyValid || parsed.length !== defaultMembers.length) {
+        localStorage.removeItem('coop_team_members');
+        localStorage.removeItem('coop_zeroed_v3');
+      }
+    } catch {
+      localStorage.removeItem('coop_team_members');
+    }
+  }
 }
 
-// Persistência de Membros da Equipe no LocalStorage
-const savedTeam = localStorage.getItem('coop_team_members');
-const teamMembers = ref<TeamMember[]>(savedTeam ? JSON.parse(savedTeam) : defaultMembers);
+// Persistência e Integração com Backend / Keycloak
+const teamMembers = ref<TeamMember[]>(defaultMembers);
+const isLoadingMembers = ref(false);
+const isSaving = ref(false);
+const feedbackMessage = ref<{ type: 'success' | 'error'; text: string } | null>(null);
 
-function saveTeamMembers() {
-  localStorage.setItem('coop_team_members', JSON.stringify(teamMembers.value));
+async function loadTeamMembers() {
+  if (!authStore.isAuthenticated) return;
+  isLoadingMembers.value = true;
+  try {
+    const remoteUsers = await api.getAdminUsers();
+    if (remoteUsers && remoteUsers.length > 0) {
+      teamMembers.value = remoteUsers.map((u) => ({
+        id: u.id,
+        name: u.name,
+        email: u.email,
+        role: u.role,
+        department: u.department || 'Atendimento & Cooperados',
+        trackTitle: u.role === 'ADMIN'
+          ? 'Governança & Segurança IAM'
+          : u.role === 'GESTOR'
+          ? 'Supervisão de Onboarding & DHO'
+          : 'Cultura & Governança Cooperativista',
+        currentModule: u.role === 'COLABORADOR' ? 'Módulo 1: Princípios e História' : 'Supervisão da Turma',
+        currentLesson: u.role === 'COLABORADOR' ? 'Lição 1.1: Origens em Rochdale e os 7 Princípios da ACI' : 'Supervisão Ativa',
+        completedCount: u.completedLessons,
+        totalCount: u.totalLessons,
+        progress: u.progressPercent,
+        slaDaysLeft: u.role === 'COLABORADOR' ? 14 : 0,
+        status: u.onboardingStatus === 'COMPLETED' ? 'CONCLUIDO' : (u.progressPercent === 0 ? 'NO_PRAZO' : 'ALERTA'),
+        avatar: u.role === 'GESTOR'
+          ? 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=150&auto=format&fit=crop&q=80'
+          : u.role === 'ADMIN'
+          ? 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&auto=format&fit=crop&q=80'
+          : 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150&auto=format&fit=crop&q=80',
+        quizzesCompleted: u.role === 'COLABORADOR' ? `${u.completedLessons} de ${u.totalLessons}` : 'Supervisão Ativa',
+        quizScoreAverage: u.role === 'COLABORADOR' ? 'Pendente' : '100%',
+        lastActive: 'Ativo agora',
+        lessons: [],
+      }));
+    }
+  } catch (err) {
+    console.warn('Fallback para lista de membros local:', err);
+  } finally {
+    isLoadingMembers.value = false;
+  }
 }
+
+onMounted(async () => {
+  await loadTeamMembers();
+});
 
 // Filtro por Papel na tabela
-const selectedRoleFilter = ref<'TODOS' | 'COLABORADOR' | 'GESTOR'>('TODOS');
+const selectedRoleFilter = ref<'TODOS' | 'COLABORADOR' | 'GESTOR' | 'ADMIN'>('TODOS');
 
 const filteredMembers = computed(() => {
   if (selectedRoleFilter.value === 'TODOS') return teamMembers.value;
@@ -232,6 +211,7 @@ const filteredMembers = computed(() => {
 // KPIs da Turma
 const colaboradoresCount = computed(() => teamMembers.value.filter((m) => m.role === 'COLABORADOR').length);
 const gestoresCount = computed(() => teamMembers.value.filter((m) => m.role === 'GESTOR').length);
+const adminsCount = computed(() => teamMembers.value.filter((m) => m.role === 'ADMIN').length);
 const averageColabProgress = computed(() => {
   const colabs = teamMembers.value.filter((m) => m.role === 'COLABORADOR');
   if (colabs.length === 0) return 0;
@@ -246,8 +226,10 @@ const editingMemberId = ref<string | null>(null);
 const memberForm = ref({
   name: '',
   email: '',
-  role: 'COLABORADOR' as 'COLABORADOR' | 'GESTOR',
-  department: '',
+  role: 'COLABORADOR' as 'COLABORADOR' | 'GESTOR' | 'ADMIN',
+  department: 'Atendimento & Cooperados',
+  jobTitle: 'Assistente de Atendimento',
+  password: '',
   trackTitle: 'Cultura & Governança Cooperativista',
   progress: 0,
   slaDaysLeft: 14,
@@ -261,6 +243,8 @@ function openCreateMemberModal() {
     email: '',
     role: 'COLABORADOR',
     department: 'Atendimento & Cooperados',
+    jobTitle: 'Assistente de Atendimento',
+    password: 'Colab@123',
     trackTitle: 'Cultura & Governança Cooperativista',
     progress: 0,
     slaDaysLeft: 14,
@@ -276,6 +260,8 @@ function openEditMemberModal(member: TeamMember) {
     email: member.email,
     role: member.role,
     department: member.department,
+    jobTitle: member.role === 'ADMIN' ? 'Arquiteto de Soluções & Governança' : (member.role === 'GESTOR' ? 'Coordenadora de DHO' : 'Analista de Atendimento'),
+    password: '',
     trackTitle: member.trackTitle,
     progress: member.progress,
     slaDaysLeft: member.slaDaysLeft,
@@ -284,83 +270,74 @@ function openEditMemberModal(member: TeamMember) {
   isMemberModalOpen.value = true;
 }
 
-function handleSaveMember() {
+async function handleSaveMember() {
   if (!memberForm.value.name.trim() || !memberForm.value.email.trim()) {
     alert('Por favor, preencha o nome e o e-mail do membro.');
     return;
   }
 
-  if (editingMemberId.value) {
-    // Modo Edição
-    const idx = teamMembers.value.findIndex((m) => m.id === editingMemberId.value);
-    if (idx !== -1) {
-      teamMembers.value[idx] = {
-        ...teamMembers.value[idx],
-        ...memberForm.value,
-      };
-      // Atualiza também se existir em authStore.profiles
-      authStore.updateUser(editingMemberId.value, {
+  isSaving.value = true;
+  feedbackMessage.value = null;
+
+  try {
+    if (editingMemberId.value) {
+      // Modo Edição com Sincronização no Keycloak & PostgreSQL
+      await api.updateAdminUser(editingMemberId.value, {
         name: memberForm.value.name,
         email: memberForm.value.email,
         role: memberForm.value.role,
         department: memberForm.value.department,
+        jobTitle: memberForm.value.jobTitle,
+        password: memberForm.value.password || undefined,
       });
+
+      feedbackMessage.value = {
+        type: 'success',
+        text: `Membro ${memberForm.value.name} atualizado com sucesso no Keycloak e no Banco de Dados!`,
+      };
+    } else {
+      // Modo Criação com Sincronização no Keycloak & PostgreSQL
+      await api.createAdminUser({
+        name: memberForm.value.name,
+        email: memberForm.value.email,
+        role: memberForm.value.role,
+        department: memberForm.value.department,
+        jobTitle: memberForm.value.jobTitle,
+        password: memberForm.value.password || 'Colab@123',
+      });
+
+      feedbackMessage.value = {
+        type: 'success',
+        text: `Membro ${memberForm.value.name} provisionado com sucesso no Keycloak IAM e PostgreSQL!`,
+      };
     }
-  } else {
-    // Modo Criação
-    const newId = `user-${Date.now()}`;
-    const avatar = memberForm.value.role === 'GESTOR'
-      ? 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80'
-      : 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150&auto=format&fit=crop&q=80';
 
-    const newMember: TeamMember = {
-      id: newId,
-      name: memberForm.value.name,
-      email: memberForm.value.email,
-      role: memberForm.value.role,
-      department: memberForm.value.department,
-      trackTitle: memberForm.value.trackTitle,
-      currentModule: 'Módulo 1: Introdução Institucional',
-      currentLesson: 'Lição 1.1: Boas-vindas e Visão Geral',
-      completedCount: 0,
-      totalCount: 5,
-      quizScoreAverage: '0%',
-      lastActive: 'Cadastrado agora',
-      lessons: [
-        { module: 'Módulo 1: Introdução Institucional', title: 'Boas-vindas e Princípios Cooperativistas', duration: '15 min', completed: false },
-        { module: 'Módulo 1: Introdução Institucional', title: 'Regulamentação e Governança Básica', duration: '20 min', completed: false },
-      ],
-      progress: memberForm.value.progress,
-      slaDaysLeft: memberForm.value.slaDaysLeft,
-      status: memberForm.value.status,
-      avatar,
-      quizzesCompleted: memberForm.value.role === 'GESTOR' ? 'Supervisão Ativa' : '0 de 3',
-    };
-    teamMembers.value.push(newMember);
-
-    // Registra também no authStore para que possa ser simulado no switcher de perfis
-    authStore.createUser({
-      name: memberForm.value.name,
-      email: memberForm.value.email,
-      role: memberForm.value.role,
-      department: memberForm.value.department,
-      avatarUrl: avatar,
-      joinDate: new Date().toLocaleDateString('pt-BR'),
-    });
+    await loadTeamMembers();
+    isMemberModalOpen.value = false;
+  } catch (err: any) {
+    console.error('Erro ao salvar membro:', err);
+    alert('Erro ao salvar no Keycloak / PostgreSQL: ' + (err.message || err));
+  } finally {
+    isSaving.value = false;
   }
-
-  saveTeamMembers();
-  isMemberModalOpen.value = false;
 }
 
-function handleDeleteMember(memberId: string) {
+async function handleDeleteMember(memberId: string) {
   const member = teamMembers.value.find((m) => m.id === memberId);
   if (!member) return;
 
-  if (confirm(`Tem certeza que deseja remover ${member.name} (${member.role}) do ecossistema?`)) {
-    teamMembers.value = teamMembers.value.filter((m) => m.id !== memberId);
-    saveTeamMembers();
-    authStore.deleteUser(memberId);
+  if (confirm(`Tem certeza que deseja remover ${member.name} (${member.role}) do ecossistema e expurgar do Keycloak e PostgreSQL?`)) {
+    try {
+      await api.deleteAdminUser(memberId);
+      feedbackMessage.value = {
+        type: 'success',
+        text: `Usuário ${member.name} excluído do Keycloak e PostgreSQL com sucesso.`,
+      };
+      await loadTeamMembers();
+    } catch (err: any) {
+      console.error('Erro ao excluir membro:', err);
+      alert('Erro ao excluir membro do Keycloak / PostgreSQL: ' + (err.message || err));
+    }
   }
 }
 
@@ -439,6 +416,26 @@ function sendSupportReminder(member: TeamMember) {
           <span>Criar Quiz com IA</span>
         </button>
       </div>
+    </div>
+
+    <!-- Banner de Feedback Operacional IAM / DB -->
+    <div
+      v-if="feedbackMessage"
+      :class="[
+        'p-4 rounded-2xl border flex items-center justify-between text-xs font-semibold animate-fade-in shadow-xs',
+        feedbackMessage.type === 'success'
+          ? 'bg-emerald-50 text-emerald-900 border-emerald-200'
+          : 'bg-rose-50 text-rose-900 border-rose-200'
+      ]"
+    >
+      <div class="flex items-center space-x-2.5">
+        <CheckCircle2 v-if="feedbackMessage.type === 'success'" class="w-5 h-5 text-emerald-600 shrink-0" />
+        <AlertTriangle v-else class="w-5 h-5 text-rose-600 shrink-0" />
+        <span>{{ feedbackMessage.text }}</span>
+      </div>
+      <button @click="feedbackMessage = null" class="text-slate-400 hover:text-slate-600 p-1 cursor-pointer">
+        <X class="w-4 h-4" />
+      </button>
     </div>
 
     <!-- KPI Summary Cards -->
@@ -521,6 +518,15 @@ function sendSupportReminder(member: TeamMember) {
           >
             Gestores ({{ gestoresCount }})
           </button>
+          <button
+            @click="selectedRoleFilter = 'ADMIN'"
+            :class="[
+              'px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer',
+              selectedRoleFilter === 'ADMIN' ? 'bg-white text-slate-900 shadow-2xs' : 'text-slate-500 hover:text-slate-700'
+            ]"
+          >
+            Administradores ({{ adminsCount }})
+          </button>
         </div>
       </div>
 
@@ -539,7 +545,27 @@ function sendSupportReminder(member: TeamMember) {
               <th v-if="authStore.isAdmin" class="px-6 py-3.5 text-right whitespace-nowrap">Ações Admin</th>
             </tr>
           </thead>
-          <tbody class="divide-y divide-slate-100 text-xs">
+          <!-- Skeleton Loading State (Pillar 2 - Motion & Polish) -->
+          <tbody v-if="isLoadingMembers" class="divide-y divide-slate-100 text-xs">
+            <tr v-for="i in 3" :key="'skel-' + i" class="animate-pulse">
+              <td class="px-6 py-4 flex items-center space-x-3 whitespace-nowrap">
+                <div class="w-9 h-9 rounded-full bg-slate-200"></div>
+                <div class="space-y-1.5">
+                  <div class="h-3 w-32 bg-slate-200 rounded"></div>
+                  <div class="h-2.5 w-44 bg-slate-100 rounded"></div>
+                </div>
+              </td>
+              <td class="px-6 py-4"><div class="h-5 w-20 bg-slate-200 rounded"></div></td>
+              <td class="px-6 py-4"><div class="h-4 w-40 bg-slate-200 rounded"></div></td>
+              <td class="px-6 py-4"><div class="h-3 w-28 bg-slate-200 rounded"></div></td>
+              <td class="px-6 py-4"><div class="h-4 w-16 bg-slate-200 rounded"></div></td>
+              <td class="px-6 py-4"><div class="h-4 w-14 bg-slate-200 rounded"></div></td>
+              <td class="px-6 py-4"><div class="h-5 w-20 bg-slate-200 rounded"></div></td>
+              <td class="px-6 py-4"><div class="h-7 w-16 bg-slate-200 rounded-lg mx-auto"></div></td>
+              <td v-if="authStore.isAdmin" class="px-6 py-4"><div class="h-7 w-14 bg-slate-200 rounded-lg ml-auto"></div></td>
+            </tr>
+          </tbody>
+          <tbody v-else class="divide-y divide-slate-100 text-xs">
             <tr v-for="member in filteredMembers" :key="member.id" class="hover:bg-slate-50/60 transition-colors">
               <td class="px-6 py-4 flex items-center space-x-3 whitespace-nowrap">
                 <img :src="member.avatar" class="w-9 h-9 rounded-full object-cover border border-slate-200" />
@@ -552,7 +578,11 @@ function sendSupportReminder(member: TeamMember) {
                 <span
                   :class="[
                     'px-2 py-0.5 rounded text-[10px] font-bold uppercase border whitespace-nowrap',
-                    member.role === 'GESTOR' ? 'bg-indigo-50 text-indigo-700 border-indigo-200' : 'bg-teal-50 text-teal-700 border-teal-200'
+                    member.role === 'ADMIN'
+                      ? 'bg-rose-50 text-rose-700 border-rose-200'
+                      : member.role === 'GESTOR'
+                      ? 'bg-indigo-50 text-indigo-700 border-indigo-200'
+                      : 'bg-teal-50 text-teal-700 border-teal-200'
                   ]"
                 >
                   {{ member.role }}
@@ -590,11 +620,11 @@ function sendSupportReminder(member: TeamMember) {
                   <span class="font-bold text-slate-700 text-[11px]">{{ member.progress }}%</span>
                 </div>
                 <span v-else class="text-[11px] font-semibold text-slate-400">
-                  Liderança Pedagógica
+                  Liderança Pedagógica & TI
                 </span>
               </td>
               <td class="px-6 py-4 font-medium text-slate-600 whitespace-nowrap">
-                <span v-if="member.role === 'GESTOR'" class="text-slate-400 text-[11px]">
+                <span v-if="member.role === 'GESTOR' || member.role === 'ADMIN'" class="text-slate-400 text-[11px]">
                   Permanente
                 </span>
                 <span v-else-if="member.status === 'CONCLUIDO'" class="text-teal-700 font-semibold flex items-center gap-1">
@@ -725,6 +755,7 @@ function sendSupportReminder(member: TeamMember) {
               >
                 <option value="COLABORADOR">Colaborador em Formação</option>
                 <option value="GESTOR">Gestor de Equipe</option>
+                <option value="ADMIN">Administrador TI & Governança</option>
               </select>
             </div>
 
@@ -741,15 +772,44 @@ function sendSupportReminder(member: TeamMember) {
             </div>
           </div>
 
-          <!-- Departamento -->
-          <div>
-            <label class="block font-bold text-slate-700 mb-1">Área / Departamento:</label>
+          <!-- Departamento e Cargo -->
+          <div class="grid grid-cols-2 gap-3">
+            <div>
+              <label class="block font-bold text-slate-700 mb-1">Área / Departamento:</label>
+              <input
+                v-model="memberForm.department"
+                type="text"
+                required
+                placeholder="Ex: Atendimento, Riscos, TI..."
+                class="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs focus:ring-2 focus:ring-rose-500 focus:outline-none"
+              />
+            </div>
+            <div>
+              <label class="block font-bold text-slate-700 mb-1">Cargo / Função:</label>
+              <input
+                v-model="memberForm.jobTitle"
+                type="text"
+                required
+                placeholder="Ex: Assistente de Operações"
+                class="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs focus:ring-2 focus:ring-rose-500 focus:outline-none"
+              />
+            </div>
+          </div>
+
+          <!-- Credencial Keycloak IAM -->
+          <div class="p-3.5 bg-slate-50 rounded-2xl border border-slate-200/80 space-y-1.5">
+            <div class="flex items-center space-x-1.5 text-slate-700 font-bold">
+              <Key class="w-3.5 h-3.5 text-rose-600" />
+              <span>Credencial de Acesso (Keycloak IAM)</span>
+            </div>
+            <label class="block text-[11px] text-slate-500">
+              {{ editingMemberId ? 'Nova Senha (deixe em branco para não alterar):' : 'Senha Provisória de Acesso:' }}
+            </label>
             <input
-              v-model="memberForm.department"
+              v-model="memberForm.password"
               type="text"
-              required
-              placeholder="Ex: Atendimento, Riscos, TI, RH..."
-              class="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs focus:ring-2 focus:ring-rose-500 focus:outline-none"
+              :placeholder="editingMemberId ? 'Manter senha atual' : 'Ex: Colab@123'"
+              class="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs bg-white focus:ring-2 focus:ring-rose-500 focus:outline-none font-mono"
             />
           </div>
 
@@ -791,16 +851,19 @@ function sendSupportReminder(member: TeamMember) {
           <div class="flex items-center justify-end space-x-2.5 pt-4 border-t border-slate-100">
             <button
               type="button"
+              :disabled="isSaving"
               @click="isMemberModalOpen = false"
-              class="px-4 py-2 rounded-xl border border-slate-200 text-slate-600 font-bold hover:bg-slate-50 transition-colors cursor-pointer"
+              class="px-4 py-2 rounded-xl border border-slate-200 text-slate-600 font-bold hover:bg-slate-50 transition-colors cursor-pointer disabled:opacity-50"
             >
               Cancelar
             </button>
             <button
               type="submit"
-              class="px-5 py-2 rounded-xl bg-rose-600 hover:bg-rose-700 text-white font-bold shadow-md shadow-rose-600/25 transition-all cursor-pointer"
+              :disabled="isSaving"
+              class="px-5 py-2 rounded-xl bg-rose-600 hover:bg-rose-700 text-white font-bold shadow-md shadow-rose-600/25 transition-all cursor-pointer flex items-center space-x-2 disabled:opacity-50"
             >
-              {{ editingMemberId ? 'Salvar Alterações' : 'Cadastrar Membro' }}
+              <Loader2 v-if="isSaving" class="w-4 h-4 animate-spin" />
+              <span>{{ isSaving ? 'Sincronizando...' : (editingMemberId ? 'Salvar Alterações' : 'Cadastrar Membro') }}</span>
             </button>
           </div>
         </form>

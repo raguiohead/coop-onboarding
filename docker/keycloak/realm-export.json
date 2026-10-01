@@ -75,93 +75,66 @@
   ],
   "users": [
     {
-      "username": "admin",
+      "username": "lucas.colaborador",
       "enabled": true,
       "emailVerified": true,
-      "firstName": "Administrador",
-      "lastName": "Master",
-      "email": "admin@coop.local",
+      "firstName": "Lucas",
+      "lastName": "Almeida",
+      "email": "lucas.colaborador@coop.local",
+      "attributes": {
+        "department": ["Atendimento & Cooperados"]
+      },
       "credentials": [
         {
           "type": "password",
-          "value": "admin123",
+          "value": "Colab@123",
+          "temporary": false
+        }
+      ],
+      "realmRoles": [
+        "ROLE_COLABORADOR"
+      ]
+    },
+    {
+      "username": "mariana.gestora",
+      "enabled": true,
+      "emailVerified": true,
+      "firstName": "Mariana",
+      "lastName": "Ribeiro",
+      "email": "mariana.gestora@coop.local",
+      "attributes": {
+        "department": ["Desenvolvimento Humano e Organizacional (DHO)"]
+      },
+      "credentials": [
+        {
+          "type": "password",
+          "value": "Gestor@123",
+          "temporary": false
+        }
+      ],
+      "realmRoles": [
+        "ROLE_GESTOR"
+      ]
+    },
+    {
+      "username": "rodrigo.admin",
+      "enabled": true,
+      "emailVerified": true,
+      "firstName": "Rodrigo",
+      "lastName": "Martins",
+      "email": "rodrigo.admin@coop.local",
+      "attributes": {
+        "department": ["Governança & TI"]
+      },
+      "credentials": [
+        {
+          "type": "password",
+          "value": "Admin@123",
           "temporary": false
         }
       ],
       "realmRoles": [
         "ROLE_ADMIN"
-      ]
-    },
-    {
-      "username": "gestor",
-      "enabled": true,
-      "emailVerified": true,
-      "firstName": "Gestor",
-      "lastName": "Treinamentos",
-      "email": "gestor@coop.local",
-      "credentials": [
-        {
-          "type": "password",
-          "value": "gestor123",
-          "temporary": false
-        }
-      ],
-      "realmRoles": [
-        "ROLE_GESTOR"
-      ]
-    },
-    {
-      "username": "colaborador",
-      "enabled": true,
-      "emailVerified": true,
-      "firstName": "Ana Carolina",
-      "lastName": "Silva",
-      "email": "ana.silva@coop.local",
-      "credentials": [
-        {
-          "type": "password",
-          "value": "colab123",
-          "temporary": false
-        }
-      ],
-      "realmRoles": [
-        "ROLE_COLABORADOR"
-      ]
-    },
-    {
-      "username": "carlos",
-      "enabled": true,
-      "emailVerified": true,
-      "firstName": "Carlos",
-      "lastName": "Souza",
-      "email": "carlos.souza@coop.local",
-      "credentials": [
-        {
-          "type": "password",
-          "value": "carlos123",
-          "temporary": false
-        }
-      ],
-      "realmRoles": [
-        "ROLE_COLABORADOR"
-      ]
-    },
-    {
-      "username": "fernanda",
-      "enabled": true,
-      "emailVerified": true,
-      "firstName": "Fernanda",
-      "lastName": "Lima",
-      "email": "fernanda.lima@coop.local",
-      "credentials": [
-        {
-          "type": "password",
-          "value": "fernanda123",
-          "temporary": false
-        }
-      ],
-      "realmRoles": [
-        "ROLE_GESTOR"
       ]
     }
   ]

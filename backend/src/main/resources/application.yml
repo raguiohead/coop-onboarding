@@ -35,6 +35,13 @@ spring:
           issuer-uri: ${SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER_URI:http://localhost:8180/realms/coop-onboarding}
           jwk-set-uri: ${SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_JWK_SET_URI:http://localhost:8180/realms/coop-onboarding/protocol/openid-connect/certs}
 
+coop:
+  keycloak:
+    server-url: ${KEYCLOAK_SERVER_URL:http://localhost:8180}
+    realm: ${KEYCLOAK_REALM:coop-onboarding}
+    admin-username: ${KEYCLOAK_ADMIN_USERNAME:admin}
+    admin-password: ${KEYCLOAK_ADMIN_PASSWORD:admin}
+
   ai:
     ollama:
       base-url: http://localhost:11434

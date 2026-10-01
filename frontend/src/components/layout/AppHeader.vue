@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref } from 'vue';
+import { ref, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 import { useAuthStore } from '@/stores/auth';
 import { useAiTutorStore } from '@/stores/aiTutor';
@@ -45,6 +45,12 @@ function handleLogout() {
   authStore.logout();
   router.push('/login');
 }
+
+onMounted(async () => {
+  if (authStore.isAuthenticated) {
+    await authStore.fetchCurrentUser();
+  }
+});
 </script>
 
 <template>

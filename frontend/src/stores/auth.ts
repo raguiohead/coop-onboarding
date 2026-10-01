@@ -3,83 +3,113 @@ import { ref, computed } from 'vue';
 import type { UserProfile, UserRole } from '@/types';
 import { api } from '@/api/client';
 
+// Purga imediata de cache legado no navegador
+if (typeof window !== 'undefined' && window.localStorage) {
+  try {
+    const rawUser = localStorage.getItem('coop_current_user');
+    if (rawUser) {
+      const u = JSON.parse(rawUser);
+      const validEmails = [
+        'lucas.colaborador@coop.local',
+        'mariana.gestora@coop.local',
+        'rodrigo.admin@coop.local',
+      ];
+      if (!validEmails.includes(u.email)) {
+        localStorage.removeItem('coop_current_user');
+        localStorage.removeItem('coop_user_profiles');
+        localStorage.removeItem('coop_auth_token');
+        localStorage.removeItem('coop_refresh_token');
+      }
+    }
+  } catch {
+    localStorage.removeItem('coop_current_user');
+  }
+}
+
 export const defaultMockProfiles: UserProfile[] = [
   {
-    id: '11111111-1111-1111-1111-111111111111',
-    name: 'Ana Carolina Silva',
-    email: 'ana.silva@coop.local',
+    id: '6cc3d873-5688-4063-8d52-e88c8421488b',
+    name: 'Lucas Almeida',
+    email: 'lucas.colaborador@coop.local',
     role: 'COLABORADOR',
     department: 'Atendimento & Cooperados',
-    avatarUrl: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150&auto=format&fit=crop&q=80',
-    joinDate: '15/09/2026',
+    avatarUrl: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150&auto=format&fit=crop&q=80',
+    joinDate: '30/09/2026',
   },
   {
-    id: '44444444-4444-4444-4444-444444444444',
-    name: 'Carlos Souza',
-    email: 'carlos.souza@coop.local',
-    role: 'COLABORADOR',
-    department: 'Engenharia de TI & Inovação',
-    avatarUrl: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80',
-    joinDate: '20/09/2026',
-  },
-  {
-    id: '22222222-2222-2222-2222-222222222222',
-    name: 'Roberto Mendes',
-    email: 'roberto.mendes@coop.local',
+    id: '670a8cad-248b-41bb-86ff-adb72cab13cb',
+    name: 'Mariana Ribeiro',
+    email: 'mariana.gestora@coop.local',
     role: 'GESTOR',
-    department: 'Gente & Gestão (RH)',
-    avatarUrl: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&auto=format&fit=crop&q=80',
-    joinDate: '10/01/2024',
-  },
-  {
-    id: '55555555-5555-5555-5555-555555555555',
-    name: 'Fernanda Lima',
-    email: 'fernanda.lima@coop.local',
-    role: 'GESTOR',
-    department: 'Gerência de Crédito & Riscos',
-    avatarUrl: 'https://images.unsplash.com/photo-1580489944761-15a19d654956?w=150&auto=format&fit=crop&q=80',
-    joinDate: '15/05/2023',
-  },
-  {
-    id: '33333333-3333-3333-3333-333333333333',
-    name: 'Mariana Duarte',
-    email: 'mariana.duarte@coop.local',
-    role: 'ADMIN',
-    department: 'Tecnologia & Governança',
+    department: 'Desenvolvimento Humano e Organizacional (DHO)',
     avatarUrl: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=150&auto=format&fit=crop&q=80',
-    joinDate: '01/03/2023',
+    joinDate: '30/09/2026',
+  },
+  {
+    id: '07c89e60-4ea6-4ab0-ac0f-96c0fef51e88',
+    name: 'Rodrigo Martins',
+    email: 'rodrigo.admin@coop.local',
+    role: 'ADMIN',
+    department: 'Governança & TI',
+    avatarUrl: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&auto=format&fit=crop&q=80',
+    joinDate: '30/09/2026',
   },
 ];
 
 export const mockProfiles = defaultMockProfiles;
 
 export const profileCredentials: Record<string, { user: string; pass: string; profileId: string }> = {
-  'colaborador': { user: 'colaborador', pass: 'colab123', profileId: '11111111-1111-1111-1111-111111111111' },
-  'carlos': { user: 'carlos', pass: 'carlos123', profileId: '44444444-4444-4444-4444-444444444444' },
-  'gestor': { user: 'gestor', pass: 'gestor123', profileId: '22222222-2222-2222-2222-222222222222' },
-  'fernanda': { user: 'fernanda', pass: 'fernanda123', profileId: '55555555-5555-5555-5555-555555555555' },
-  'admin': { user: 'admin', pass: 'admin123', profileId: '33333333-3333-3333-3333-333333333333' },
+  'lucas.colaborador': { user: 'lucas.colaborador', pass: 'Colab@123', profileId: '6cc3d873-5688-4063-8d52-e88c8421488b' },
+  'mariana.gestora': { user: 'mariana.gestora', pass: 'Gestor@123', profileId: '670a8cad-248b-41bb-86ff-adb72cab13cb' },
+  'rodrigo.admin': { user: 'rodrigo.admin', pass: 'Admin@123', profileId: '07c89e60-4ea6-4ab0-ac0f-96c0fef51e88' },
 };
 
 const profileIdToUsername: Record<string, string> = {
-  '11111111-1111-1111-1111-111111111111': 'colaborador',
-  '44444444-4444-4444-4444-444444444444': 'carlos',
-  '22222222-2222-2222-2222-222222222222': 'gestor',
-  '55555555-5555-5555-5555-555555555555': 'fernanda',
-  '33333333-3333-3333-3333-333333333333': 'admin',
+  '6cc3d873-5688-4063-8d52-e88c8421488b': 'lucas.colaborador',
+  '670a8cad-248b-41bb-86ff-adb72cab13cb': 'mariana.gestora',
+  '07c89e60-4ea6-4ab0-ac0f-96c0fef51e88': 'rodrigo.admin',
 };
 
 export const useAuthStore = defineStore('auth', () => {
-  const savedProfiles = localStorage.getItem('coop_user_profiles');
-  const profiles = ref<UserProfile[]>(savedProfiles ? JSON.parse(savedProfiles) : [...defaultMockProfiles]);
+  // Inicialização segura: valida se os perfis em cache são os oficiais
+  const savedProfilesRaw = localStorage.getItem('coop_user_profiles');
+  let initialProfiles = [...defaultMockProfiles];
+  if (savedProfilesRaw) {
+    try {
+      const parsed = JSON.parse(savedProfilesRaw) as UserProfile[];
+      const validEmails = ['lucas.colaborador@coop.local', 'mariana.gestora@coop.local', 'rodrigo.admin@coop.local'];
+      const hasValidUsers = parsed.every((p) => validEmails.includes(p.email));
+      if (hasValidUsers && parsed.length === 3) {
+        initialProfiles = parsed;
+      } else {
+        localStorage.removeItem('coop_user_profiles');
+        localStorage.removeItem('coop_current_user');
+      }
+    } catch {
+      localStorage.removeItem('coop_user_profiles');
+    }
+  }
+  const profiles = ref<UserProfile[]>(initialProfiles);
 
   const savedCurrentUser = localStorage.getItem('coop_current_user');
-  const currentUser = ref<UserProfile>(
-    savedCurrentUser ? JSON.parse(savedCurrentUser) : profiles.value[0]
-  );
+  let initialUser: UserProfile = profiles.value[0];
+  if (savedCurrentUser) {
+    try {
+      const parsed = JSON.parse(savedCurrentUser) as UserProfile;
+      const validEmails = ['lucas.colaborador@coop.local', 'mariana.gestora@coop.local', 'rodrigo.admin@coop.local'];
+      if (validEmails.includes(parsed.email)) {
+        initialUser = parsed;
+      } else {
+        localStorage.removeItem('coop_current_user');
+      }
+    } catch {
+      localStorage.removeItem('coop_current_user');
+    }
+  }
+  const currentUser = ref<UserProfile>(initialUser);
   const token = ref<string | null>(localStorage.getItem('coop_auth_token'));
   const refreshToken = ref<string | null>(localStorage.getItem('coop_refresh_token'));
-  const activeUsername = ref<string>('colaborador');
+  const activeUsername = ref<string>('lucas.colaborador');
 
   function setCurrentUser(user: UserProfile) {
     currentUser.value = { ...user };
@@ -175,8 +205,8 @@ export const useAuthStore = defineStore('auth', () => {
         }
         activeUsername.value = username;
 
-        // Mapeia usuário do Keycloak para o perfil mock da aplicação
-        const credKey = Object.keys(profileCredentials).find(k => k === username);
+        // Mapeia usuário do Keycloak para o perfil da aplicação
+        const credKey = Object.keys(profileCredentials).find(k => k.toLowerCase() === username.toLowerCase());
         if (credKey) {
           const profileId = profileCredentials[credKey].profileId;
           const found = mockProfiles.find(p => p.id === profileId);
@@ -184,6 +214,30 @@ export const useAuthStore = defineStore('auth', () => {
             setCurrentUser(found);
           }
         }
+
+        // Sincroniza com os dados reais do banco PostgreSQL via /api/v1/users/me
+        try {
+          const userMe = await api.getCurrentUser();
+          if (userMe) {
+            const matched = mockProfiles.find(p => p.email === userMe.email);
+            setCurrentUser({
+              id: userMe.id,
+              name: userMe.name,
+              email: userMe.email,
+              role: userMe.role as UserRole,
+              department: userMe.department || matched?.department || 'Geral',
+              avatarUrl: matched?.avatarUrl || (userMe.role === 'GESTOR'
+                ? 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=150&auto=format&fit=crop&q=80'
+                : userMe.role === 'ADMIN'
+                ? 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&auto=format&fit=crop&q=80'
+                : 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150&auto=format&fit=crop&q=80'),
+              joinDate: '30/09/2026',
+            });
+          }
+        } catch (err) {
+          console.warn('Fallback para perfil local (falha ao chamar /users/me):', err);
+        }
+
         return true;
       }
     } catch (err) {
@@ -193,7 +247,7 @@ export const useAuthStore = defineStore('auth', () => {
   }
 
   async function syncKeycloakToken(profileId: string): Promise<string | null> {
-    const username = profileIdToUsername[profileId] || 'colaborador';
+    const username = profileIdToUsername[profileId] || 'lucas.colaborador';
     const cred = profileCredentials[username];
     if (!cred) return null;
 
@@ -273,6 +327,34 @@ export const useAuthStore = defineStore('auth', () => {
     }
   }
 
+  async function fetchCurrentUser(): Promise<UserProfile | null> {
+    if (!token.value) return null;
+    try {
+      const userMe = await api.getCurrentUser();
+      if (userMe) {
+        const matched = profiles.value.find((p) => p.email === userMe.email);
+        const updated: UserProfile = {
+          id: userMe.id,
+          name: userMe.name,
+          email: userMe.email,
+          role: userMe.role as UserRole,
+          department: userMe.department || matched?.department || 'Geral',
+          avatarUrl: matched?.avatarUrl || (userMe.role === 'GESTOR'
+            ? 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=150&auto=format&fit=crop&q=80'
+            : userMe.role === 'ADMIN'
+            ? 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&auto=format&fit=crop&q=80'
+            : 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150&auto=format&fit=crop&q=80'),
+          joinDate: matched?.joinDate || '30/09/2026',
+        };
+        setCurrentUser(updated);
+        return updated;
+      }
+    } catch (err) {
+      console.warn('Erro ao sincronizar perfil do backend via /users/me:', err);
+    }
+    return currentUser.value;
+  }
+
   return {
     currentUser,
     token,
@@ -289,6 +371,7 @@ export const useAuthStore = defineStore('auth', () => {
     roleBadge,
     login,
     logout,
+    fetchCurrentUser,
     switchProfile,
     syncKeycloakToken,
     refreshKeycloakToken,

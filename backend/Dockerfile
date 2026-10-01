@@ -33,6 +33,6 @@ COPY --from=builder --chown=coopuser:coopgroup /app/target/*.jar app.jar
 
 # Configuração de portas e variáveis JVM otimizadas para contêiner
 EXPOSE 8080
-ENV JAVA_OPTS="-XX:+UseZGC -XX:MaxRAMPercentage=75.0 -Djava.security.egd=file:/dev/./urandom"
+ENV JAVA_OPTS="-XX:+UseSerialGC -Xms128m -Xmx320m -Djava.security.egd=file:/dev/./urandom"
 
 ENTRYPOINT ["sh", "-c", "java $JAVA_OPTS -jar app.jar"]
